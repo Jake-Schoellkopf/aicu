@@ -15,6 +15,7 @@ Thumbs.db
 # AICU outputs
 runs/
 generated_files/
+attack_files/
 
 # Engagement files (never commit)
 req.txt
