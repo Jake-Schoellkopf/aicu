@@ -16,6 +16,11 @@ Thumbs.db
 runs/
 generated_files/
 
+# Engagement files (never commit)
+req.txt
+test_target.py
+*.req
+
 # Secrets
 .env
 

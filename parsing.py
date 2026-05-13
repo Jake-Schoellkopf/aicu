@@ -18,8 +18,8 @@ COMMON_MUTATION_KEYS = {
 
 
 def load_raw_request(file_path: str | Path) -> str:
-    """Load a raw HTTP request from disk as text."""
-    return Path(file_path).read_text(encoding="utf-8")
+    """Load a raw HTTP request from disk as text, preserving CRLF."""
+    return Path(file_path).read_bytes().decode("utf-8")
 
 
 def split_raw_request(raw_request: str) -> tuple[str, str]:
