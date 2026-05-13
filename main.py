@@ -5,7 +5,6 @@ import argparse
 import json
 from pathlib import Path
 
-from adaptive_multi_turn import run_all_adaptive_tests, AttackerLLMConfig
 from baseline import run_baseline
 from evaluator import evaluate_response
 from indirect_injection import run_all_indirect_file_tests, serialize_indirect_result
@@ -75,25 +74,6 @@ def command_multi_turn(args: argparse.Namespace) -> None:
 
     baseline_response, baseline_diag = replay_request(parsed)
     results = run_all_multi_turn_tests(parsed, baseline_response)
-    serialized = [serialize_multi_turn_result(result) for result in results]
-
-    print(json.dumps(serialized, indent=2))
-
-
-def command_adaptive(args: argparse.Namespace) -> None:
-    parsed = parse_raw_request_file(args.request)
-    parsed = _apply_profile(parsed, args)
-
-    if not parsed.is_json():
-        raise ValueError("adaptive command requires a JSON request.")
-
-    baseline_response, baseline_diag = replay_request(parsed)
-
-    config = AttackerLLMConfig.from_env()
-    if args.attacker_model:
-        config.model = args.attacker_model
-
-    results = run_all_adaptive_tests(parsed, baseline_response, attacker_config=config)
     serialized = [serialize_multi_turn_result(result) for result in results]
 
     print(json.dumps(serialized, indent=2))
@@ -206,24 +186,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     _add_common_args(multi_turn_parser)
     multi_turn_parser.set_defaults(func=command_multi_turn)
-
-    # adaptive
-    adaptive_parser = subparsers.add_parser(
-        "adaptive",
-        help="Run adaptive multi-turn tests using an attacker LLM",
-    )
-    adaptive_parser.add_argument(
-        "--request",
-        required=True,
-        help="Path to raw HTTP request file",
-    )
-    adaptive_parser.add_argument(
-        "--attacker-model",
-        default=None,
-        help="Override attacker LLM model (default: from ATTACKER_LLM_MODEL env var or gpt-4o-mini)",
-    )
-    _add_common_args(adaptive_parser)
-    adaptive_parser.set_defaults(func=command_adaptive)
 
     # safety
     safety_parser = subparsers.add_parser(
