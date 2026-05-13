@@ -72,6 +72,43 @@ def try_extract_json_text(text: str) -> object | None:
         return None
 
 
+def extract_model_output(text: str) -> str:
+    """
+    Extract the actual model output from structured API responses.
+    Handles common LLM API formats (OpenAI, Anthropic, Azure, etc.).
+    Falls back to raw text if no known structure is detected.
+    """
+    parsed = try_extract_json_text(text)
+    if not isinstance(parsed, dict):
+        return text
+
+    # OpenAI / Azure OpenAI format: choices[0].message.content
+    choices = parsed.get("choices")
+    if isinstance(choices, list) and choices:
+        first = choices[0]
+        if isinstance(first, dict):
+            message = first.get("message")
+            if isinstance(message, dict) and "content" in message:
+                return message["content"] or ""
+            # Completion format: choices[0].text
+            if "text" in first:
+                return first["text"] or ""
+
+    # Anthropic format: content[0].text
+    content = parsed.get("content")
+    if isinstance(content, list) and content:
+        first = content[0]
+        if isinstance(first, dict) and "text" in first:
+            return first["text"] or ""
+
+    # Generic: look for common output keys
+    for key in ("output", "response", "result", "answer", "text", "reply"):
+        if key in parsed and isinstance(parsed[key], str):
+            return parsed[key]
+
+    return text
+
+
 def collect_strings(value: object) -> list[str]:
     """
     Recursively collect all string values from a JSON-like object.
@@ -178,10 +215,10 @@ def evaluate_response(
             evidence=diagnostics.likely_causes or [],
         )
 
-    baseline_text = baseline_response.text
-    mutated_text = mutated_response.text
+    baseline_text = extract_model_output(baseline_response.text)
+    mutated_text = extract_model_output(mutated_response.text)
 
-    pattern_analysis: PatternAnalysis = analyze_patterns(mutated_text)
+    pattern_analysis: PatternAnalysis = analyze_patterns(mutated_text, baseline_text)
     refusal = looks_like_refusal(mutated_text)
     materially_different = response_significantly_differs(baseline_text, mutated_text)
 

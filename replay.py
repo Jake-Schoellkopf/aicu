@@ -139,54 +139,79 @@ def analyze_response_issues(
 def replay_request(
     request: ParsedRequest,
     timeout: float = 30.0,
+    max_retries: int = 3,
+    base_delay: float = 1.0,
+    request_delay: float = 0.0,
 ) -> tuple[ReplayResponse, ReplayDiagnostics]:
     """
     Replay a ParsedRequest and return:
     - ReplayResponse
     - ReplayDiagnostics
+
+    Includes exponential backoff on 429/5xx responses and optional inter-request delay.
     """
+    if request_delay > 0:
+        time.sleep(request_delay)
+
     url = build_url(request)
     headers = prepare_headers(request)
 
-    start = time.time()
+    for attempt in range(max_retries + 1):
+        start = time.time()
 
-    try:
-        with httpx.Client(timeout=timeout, follow_redirects=True) as client:
-            response = client.request(
-                method=request.method,
-                url=url,
-                headers=headers,
-                content=request.body,
+        try:
+            with httpx.Client(timeout=timeout, follow_redirects=True) as client:
+                response = client.request(
+                    method=request.method,
+                    url=url,
+                    headers=headers,
+                    content=request.body,
+                )
+
+            elapsed_ms = int((time.time() - start) * 1000)
+
+            # Retry on 429 or 5xx with backoff
+            if response.status_code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                delay = base_delay * (2 ** attempt)
+                time.sleep(delay)
+                continue
+
+            replay_response = ReplayResponse(
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                body=response.content,
+                text=response.text,
+                elapsed_ms=elapsed_ms,
+                error=None,
             )
 
-        elapsed_ms = int((time.time() - start) * 1000)
+            diagnostics = analyze_response_issues(request, replay_response)
+            return replay_response, diagnostics
 
-        replay_response = ReplayResponse(
-            status_code=response.status_code,
-            headers=dict(response.headers),
-            body=response.content,
-            text=response.text,
-            elapsed_ms=elapsed_ms,
-            error=None,
-        )
+        except Exception as exc:
+            elapsed_ms = int((time.time() - start) * 1000)
 
-        diagnostics = analyze_response_issues(request, replay_response)
-        return replay_response, diagnostics
+            if attempt < max_retries:
+                delay = base_delay * (2 ** attempt)
+                time.sleep(delay)
+                continue
 
-    except Exception as exc:
-        elapsed_ms = int((time.time() - start) * 1000)
+            replay_response = ReplayResponse(
+                status_code=0,
+                headers={},
+                body=b"",
+                text="",
+                elapsed_ms=elapsed_ms,
+                error=str(exc),
+            )
 
-        replay_response = ReplayResponse(
-            status_code=0,
-            headers={},
-            body=b"",
-            text="",
-            elapsed_ms=elapsed_ms,
-            error=str(exc),
-        )
+            diagnostics = ReplayDiagnostics(
+                likely_causes=[f"Transport or connection error: {exc}"]
+            )
 
-        diagnostics = ReplayDiagnostics(
-            likely_causes=[f"Transport or connection error: {exc}"]
-        )
+            return replay_response, diagnostics
 
-        return replay_response, diagnostics
+    # Should not reach here, but satisfy type checker
+    return ReplayResponse(
+        status_code=0, headers={}, body=b"", text="", elapsed_ms=0, error="Max retries exceeded"
+    ), ReplayDiagnostics(likely_causes=["Max retries exceeded"])

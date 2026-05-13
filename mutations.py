@@ -9,6 +9,7 @@ from pathlib import Path
 
 from models import ParsedRequest
 from payload_loader import load_single_turn_payloads
+from shared import clone_request, rebuild_json_request
 
 
 _PATH_TOKEN_RE = re.compile(
@@ -34,23 +35,6 @@ class MutationResult:
     mutation_point: str
     mode: str
     mutated_request: ParsedRequest
-
-
-def clone_request(request: ParsedRequest) -> ParsedRequest:
-    return ParsedRequest(
-        method=request.method,
-        scheme=request.scheme,
-        host=request.host,
-        port=request.port,
-        path=request.path,
-        headers=copy.deepcopy(request.headers),
-        cookies=copy.deepcopy(request.cookies),
-        query_params=copy.deepcopy(request.query_params),
-        body=bytes(request.body),
-        content_type=request.content_type,
-        json_body=copy.deepcopy(request.json_body),
-        mutation_points=copy.deepcopy(request.mutation_points),
-    )
 
 
 def parse_path_tokens(path: str) -> list[str | int]:
@@ -109,19 +93,6 @@ def set_value_at_path(data: object, path: str, new_value: object) -> None:
         if not isinstance(current, dict):
             raise TypeError(f"Expected dict while setting key {last!r} in {path!r}")
         current[last] = new_value
-
-
-def rebuild_json_request(request: ParsedRequest) -> None:
-    if request.json_body is None:
-        raise ValueError("Cannot rebuild JSON request: json_body is None")
-
-    body_text = json.dumps(request.json_body, ensure_ascii=False)
-    request.body = body_text.encode("utf-8")
-
-    if not request.content_type:
-        request.content_type = "application/json"
-
-    request.headers["Content-Type"] = request.content_type
 
 
 def mutate_request(

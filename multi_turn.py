@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import copy
 import json
 from dataclasses import dataclass, field
 
 from evaluator import EvaluationResult, evaluate_response
 from models import ParsedRequest, ReplayResponse
 from replay import ReplayDiagnostics, replay_request
+from shared import clone_request, rebuild_json_request
 
 
 @dataclass(slots=True)
@@ -127,38 +127,6 @@ DEFAULT_MULTI_TURN_TESTS: list[MultiTurnTestCase] = [
 ]
 
 
-def clone_request(request: ParsedRequest) -> ParsedRequest:
-    """Deep-copy a ParsedRequest so multi-turn runs do not alter the original."""
-    return ParsedRequest(
-        method=request.method,
-        scheme=request.scheme,
-        host=request.host,
-        port=request.port,
-        path=request.path,
-        headers=copy.deepcopy(request.headers),
-        cookies=copy.deepcopy(request.cookies),
-        query_params=copy.deepcopy(request.query_params),
-        body=bytes(request.body),
-        content_type=request.content_type,
-        json_body=copy.deepcopy(request.json_body),
-        mutation_points=copy.deepcopy(request.mutation_points),
-    )
-
-
-def rebuild_json_request(request: ParsedRequest) -> None:
-    """Rebuild request.body from request.json_body."""
-    if request.json_body is None:
-        raise ValueError("Cannot rebuild JSON request: json_body is None")
-
-    body_text = json.dumps(request.json_body, ensure_ascii=False)
-    request.body = body_text.encode("utf-8")
-
-    if not request.content_type:
-        request.content_type = "application/json"
-
-    request.headers["Content-Type"] = request.content_type
-
-
 def find_messages_container(request: ParsedRequest) -> list[dict]:
     """
     Return the JSON messages array.
@@ -190,6 +158,25 @@ def append_user_turn(request: ParsedRequest, prompt: str) -> ParsedRequest:
         {
             "role": "user",
             "content": prompt,
+        }
+    )
+
+    rebuild_json_request(mutated)
+    return mutated
+
+
+def append_assistant_turn(request: ParsedRequest, response_text: str) -> ParsedRequest:
+    """
+    Append an assistant turn to the messages array and rebuild the request body.
+    This enables realistic multi-turn context where the model sees its own prior responses.
+    """
+    mutated = clone_request(request)
+    messages = find_messages_container(mutated)
+
+    messages.append(
+        {
+            "role": "assistant",
+            "content": response_text,
         }
     )
 
@@ -232,6 +219,10 @@ def run_multi_turn_test(
             diagnostics=diagnostics,
         )
         run_result.steps.append(step_result)
+
+        # Inject assistant response back into context for realistic multi-turn
+        if response.text and not response.error:
+            current_request = append_assistant_turn(current_request, response.text)
 
         final_response = response
         final_diagnostics = diagnostics

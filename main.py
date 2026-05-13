@@ -13,69 +13,7 @@ from mutations import generate_mutations
 from parsing import parse_raw_request_file
 from replay import replay_request
 from runner import run_scan
-
-
-def serialize_mutation_result(mutation, response, diagnostics, evaluation) -> dict:
-    return {
-        "test_type": "single_turn",
-        "test_id": mutation.test_id,
-        "name": mutation.name,
-        "mutation_point": mutation.mutation_point,
-        "mode": mutation.mode,
-        "response": {
-            "status_code": response.status_code,
-            "elapsed_ms": response.elapsed_ms,
-            "body_preview": response.text[:2000],
-            "error": response.error,
-        },
-        "diagnostics": {
-            "auth_issue": diagnostics.auth_issue,
-            "csrf_issue": diagnostics.csrf_issue,
-            "cookie_issue": diagnostics.cookie_issue,
-            "likely_causes": diagnostics.likely_causes,
-        },
-        "evaluation": {
-            "outcome": evaluation.outcome,
-            "title": evaluation.title,
-            "confidence": evaluation.confidence,
-            "reason": evaluation.reason,
-            "evidence": evaluation.evidence,
-        },
-    }
-
-
-def serialize_multi_turn_result(result) -> dict:
-    return {
-        "test_type": "multi_turn",
-        "test_id": result.test_id,
-        "name": result.name,
-        "steps": [
-            {
-                "step_number": step.step_number,
-                "prompt": step.prompt,
-                "response": {
-                    "status_code": step.response.status_code,
-                    "elapsed_ms": step.response.elapsed_ms,
-                    "body_preview": step.response.text[:2000],
-                    "error": step.response.error,
-                },
-                "diagnostics": {
-                    "auth_issue": step.diagnostics.auth_issue,
-                    "csrf_issue": step.diagnostics.csrf_issue,
-                    "cookie_issue": step.diagnostics.cookie_issue,
-                    "likely_causes": step.diagnostics.likely_causes,
-                },
-            }
-            for step in result.steps
-        ],
-        "final_evaluation": {
-            "outcome": result.final_evaluation.outcome if result.final_evaluation else "none",
-            "title": result.final_evaluation.title if result.final_evaluation else "",
-            "confidence": result.final_evaluation.confidence if result.final_evaluation else "low",
-            "reason": result.final_evaluation.reason if result.final_evaluation else "",
-            "evidence": result.final_evaluation.evidence if result.final_evaluation else [],
-        },
-    }
+from shared import serialize_mutation_result, serialize_multi_turn_result
 
 
 def command_baseline(args: argparse.Namespace) -> None:
@@ -93,7 +31,7 @@ def command_single_turn(args: argparse.Namespace) -> None:
         raise ValueError("single-turn command requires a JSON request.")
 
     baseline_response, baseline_diag = replay_request(parsed)
-    mutations = generate_mutations(parsed)
+    mutations = generate_mutations(parsed, best_of_n=args.best_of_n)
 
     results: list[dict] = []
 
@@ -188,6 +126,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--request",
         required=True,
         help="Path to raw HTTP request file",
+    )
+    single_turn_parser.add_argument(
+        "--best-of-n",
+        type=int,
+        default=5,
+        help="Number of best-of-N repetitions per seed payload (default: 5)",
     )
     single_turn_parser.set_defaults(func=command_single_turn)
 

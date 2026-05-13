@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import copy
 import re
 from dataclasses import dataclass
 
 from models import ParsedRequest
+from shared import clone_request
 
 
 _BOUNDARY_RE = re.compile(r'boundary=("?)([^";]+)\1', re.IGNORECASE)
@@ -16,23 +16,6 @@ _NAME_RE = re.compile(r'name="([^"]*)"')
 class MultipartPart:
     headers: dict[str, str]
     body: bytes
-
-
-def clone_request(request: ParsedRequest) -> ParsedRequest:
-    return ParsedRequest(
-        method=request.method,
-        scheme=request.scheme,
-        host=request.host,
-        port=request.port,
-        path=request.path,
-        headers=copy.deepcopy(request.headers),
-        cookies=copy.deepcopy(request.cookies),
-        query_params=copy.deepcopy(request.query_params),
-        body=bytes(request.body),
-        content_type=request.content_type,
-        json_body=copy.deepcopy(request.json_body),
-        mutation_points=copy.deepcopy(request.mutation_points),
-    )
 
 
 def extract_boundary(content_type: str | None) -> str:
