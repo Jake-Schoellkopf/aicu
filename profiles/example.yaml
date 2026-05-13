@@ -1,0 +1,38 @@
+# Example target profile for AICU
+# Copy this file and customize for your target API.
+
+# Use a preset as a base (openai, anthropic, azure_openai, generic)
+preset: openai
+
+# Override the name
+name: my_internal_chatbot
+
+# JSON path to extract the model's actual text output from the response body
+# Examples:
+#   OpenAI: choices[0].message.content
+#   Anthropic: content[0].text
+#   Custom: result.output.text
+response_path: choices[0].message.content
+
+# Conversation threading (optional)
+# Field in the response JSON that contains a conversation/thread ID
+conversation_id_field: id
+# Where to inject that ID in subsequent requests
+conversation_id_inject: conversation_id
+
+# Auth refresh (optional)
+# If your token expires during a scan, AICU can auto-refresh it
+# auth_refresh_url: https://auth.example.com/token
+# auth_refresh_method: POST
+# auth_refresh_body: '{"grant_type": "client_credentials", "client_id": "xxx", "client_secret": "yyy"}'
+# auth_refresh_token_path: access_token
+# auth_header_format: "Bearer {token}"
+
+# Rate limiting
+request_delay_ms: 200
+max_retries: 3
+
+# Extra headers to add to every request (optional)
+# extra_headers:
+#   X-Custom-Header: value
+#   X-API-Version: "2024-01"
