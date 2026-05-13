@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
 from baseline import run_baseline
@@ -17,6 +18,11 @@ from safety_bypass import run_all_safety_tests, serialize_safety_result
 from shared import serialize_mutation_result, serialize_multi_turn_result
 from target_profile import get_profile, apply_profile_to_request
 
+# Exit codes for CI integration
+EXIT_CLEAN = 0
+EXIT_CONFIRMED = 1
+EXIT_SUSPICIOUS = 2
+
 
 def _apply_profile(parsed, args):
     """Apply target profile to request if specified."""
@@ -30,8 +36,37 @@ def command_baseline(args: argparse.Namespace) -> None:
     run_baseline(args.request)
 
 
-def command_scan(args: argparse.Namespace) -> None:
-    run_scan(args.request)
+def command_scan(args: argparse.Namespace) -> int:
+    run_path = run_scan(args.request)
+
+    # Determine exit code from results
+    results_file = run_path / "results.json"
+    mt_file = run_path / "multi_turn_results.json"
+    indirect_file = run_path / "indirect_results.json"
+
+    has_confirmed = False
+    has_suspicious = False
+
+    for filepath in (results_file, mt_file, indirect_file):
+        if not filepath.exists():
+            continue
+        data = json.loads(filepath.read_text(encoding="utf-8"))
+        for result in data:
+            outcome = result.get("evaluation", result.get("final_evaluation", {})).get("outcome", "none")
+            if outcome == "confirmed":
+                has_confirmed = True
+            elif outcome == "suspicious":
+                has_suspicious = True
+
+    if has_confirmed:
+        print(f"\n[!] EXIT CODE {EXIT_CONFIRMED}: Confirmed findings detected.")
+        return EXIT_CONFIRMED
+    if has_suspicious:
+        print(f"\n[*] EXIT CODE {EXIT_SUSPICIOUS}: Suspicious findings only (no confirmed).")
+        return EXIT_SUSPICIOUS
+
+    print(f"\n[+] EXIT CODE {EXIT_CLEAN}: No findings.")
+    return EXIT_CLEAN
 
 
 def command_single_turn(args: argparse.Namespace) -> None:
@@ -229,7 +264,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
-    args.func(args)
+    result = args.func(args)
+    if isinstance(result, int):
+        sys.exit(result)
 
 
 if __name__ == "__main__":

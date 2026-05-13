@@ -11,6 +11,7 @@ from evidence import (
     save_all_multi_turn_evidence,
     save_all_indirect_evidence,
 )
+from html_reporter import generate_html_report
 from indirect_injection import (
     run_all_indirect_file_tests,
     serialize_indirect_result,
@@ -111,10 +112,18 @@ def run_scan(request_file: str) -> Path:
         indirect_results=indirect_results,
     )
 
+    html_report_path = generate_html_report(
+        run_path=run_path,
+        single_turn_results=single_turn_results,
+        multi_turn_results=multi_turn_results,
+        indirect_results=indirect_results,
+    )
+
     print(f"[+] Single-turn results saved to: {single_turn_file}")
     print(f"[+] Multi-turn results saved to: {multi_turn_file}")
     print(f"[+] Indirect results saved to: {indirect_file}")
     print(f"[+] Report generated: {report_path}")
+    print(f"[+] HTML report generated: {html_report_path}")
 
     return run_path
 
