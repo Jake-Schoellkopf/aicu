@@ -86,6 +86,8 @@ print("[+] Probing /bff/assistant endpoint for other configurations")
 print("=" * 80)
 
 print("\n[Phase 1] Probing assistant IDs:")
+results = []
+
 for aid in ASSISTANT_IDS:
     status, body = probe_assistant(aid)
     if status == 200 and "model" in body:
@@ -99,8 +101,10 @@ for aid in ASSISTANT_IDS:
                 print(f"      {json.dumps(data, indent=6)[:300]}")
         except json.JSONDecodeError:
             print(f"      {body[:300]}")
+        results.append({"id": aid, "name": f"assistant/{aid}", "status": "DISCLOSED", "payload": f"GET /bff/assistant?assistant_id={aid}", "response": body[:600], "strategy": "endpoint_probe"})
     elif status == 200:
         print(f"  🟡 {aid} -> {status} (response but no model config): {body[:100]}")
+        results.append({"id": aid, "name": f"assistant/{aid}", "status": "NORMAL", "payload": f"GET /bff/assistant?assistant_id={aid}", "response": body[:300], "strategy": "endpoint_probe"})
     elif status == 404:
         print(f"  ➖ {aid} -> 404")
     else:
@@ -119,3 +123,7 @@ for endpoint in ENDPOINTS:
     time.sleep(1)
 
 print("\n[+] Done.")
+
+# Generate HTML report
+from attack_reporter import generate_attack_report
+generate_attack_report("Endpoint Probing", results)

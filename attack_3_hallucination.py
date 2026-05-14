@@ -107,3 +107,26 @@ if hallucinated:
         print(f"\n    [{h['payload']['id']}] {h['payload']['name']}")
         print(f"    Question: {h['payload']['content'][:100]}")
         print(f"    Hallucinated answer: {h['response'][:200]}")
+
+# Generate HTML report
+from attack_reporter import generate_attack_report
+report_results = []
+for h in hallucinated:
+    report_results.append({
+        "id": h["payload"]["id"],
+        "name": h["payload"]["name"],
+        "status": "TRIGGERED",
+        "payload": h["payload"]["content"][:300],
+        "response": h["response"][:600],
+        "strategy": h["payload"]["family"],
+    })
+for h in honest:
+    report_results.append({
+        "id": h["id"],
+        "name": h["name"],
+        "status": "REFUSED",
+        "payload": h["content"][:300],
+        "response": "",
+        "strategy": h["family"],
+    })
+generate_attack_report("Hallucination Probes", report_results)
