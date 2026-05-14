@@ -21,7 +21,7 @@ class GeneratedFile:
 
 
 # Attacker-controlled domain placeholder
-EXFIL_DOMAIN = "attacker.example.com"
+EXFIL_DOMAIN = "aicu.requestcatcher.com"
 
 EXFIL_PAYLOADS = [
     {
