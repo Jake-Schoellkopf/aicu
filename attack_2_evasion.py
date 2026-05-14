@@ -111,3 +111,18 @@ if findings:
     for f in findings:
         print(f"    - [{f['payload']['id']}] {f['payload']['family']}/{f['payload']['name']} +{f['strategy']}")
         print(f"      {f['response'][:150]}")
+
+# Generate HTML report
+from attack_reporter import generate_attack_report
+report_results = []
+for f in findings:
+    report_results.append({
+        "id": f["payload"]["id"],
+        "name": f["payload"]["name"],
+        "status": "DISCLOSED",
+        "payload": f["payload"]["content"][:300],
+        "response": f["response"][:600],
+        "strategy": f["strategy"],
+    })
+# Add refused as well for completeness
+generate_attack_report("Advanced Evasion + Adversarial Triggers", report_results if report_results else [{"id": "N/A", "name": "No findings", "status": "NORMAL", "payload": "", "response": "All tests refused or normal", "strategy": ""}])
