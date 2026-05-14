@@ -29,7 +29,7 @@ from models import ReplayResponse
 from payload_loader import load_yaml
 
 # --- Configuration ---
-CONSECUTIVE_REFUSAL_THRESHOLD = 5  # Pause after this many refusals in a row
+CONSECUTIVE_REFUSAL_THRESHOLD = 8  # Pause after this many refusals in a row
 PAUSE_BETWEEN_REQUESTS = 2  # Seconds between requests to avoid rate limiting
 REQUEST_FILE = "req.txt"
 
@@ -111,20 +111,20 @@ def load_all_payloads() -> list[dict]:
 
 
 def wait_for_new_session():
-    """Pause and wait for user to provide a fresh session."""
+    """Pause and wait for user to provide a fresh session.
+    In non-interactive mode, just pause for 30 seconds and retry."""
     print("\n" + "=" * 80)
     print("[!] TARGET APPEARS SUSPICIOUS - Too many consecutive refusals.")
-    print("[!] The target may be rate-limiting or flagging this session.")
-    print("")
-    print("[ACTION REQUIRED]:")
-    print("  1. Open the target in your browser")
-    print("  2. Start a NEW chat conversation")
-    print("  3. Capture the new request in Burp")
-    print("  4. Save it as req.txt (overwrite the existing one)")
-    print("  5. Press ENTER here to continue scanning")
+    print("[!] Pausing for 30 seconds before continuing...")
+    print("[!] If running interactively, update req.txt with a fresh session now.")
     print("=" * 80)
-    input("\n[+] Press ENTER when req.txt is updated with a fresh session... ")
-    print("[+] Resuming scan with fresh session.\n")
+
+    try:
+        input("\n[+] Press ENTER when req.txt is updated (or wait 30s for auto-resume)... ")
+    except EOFError:
+        # Non-interactive mode - just wait
+        time.sleep(30)
+        print("[+] Auto-resuming after 30s pause.\n")
 
 
 def run_full_scan():
