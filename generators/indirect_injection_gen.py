@@ -336,6 +336,28 @@ def _create_minimal_docx(text: str) -> bytes:
     return buf.getvalue()
 
 
+def generate_py_files(output_dir: Path) -> list[GeneratedFile]:
+    """Generate .py files with injections hidden in comments and docstrings."""
+    files = []
+    for payload in INJECTION_PAYLOADS:
+        filename = f"{payload['id']}_{payload['name']}.py"
+        # Wrap payload text as Python comments and docstrings
+        lines = payload["text"].strip().split("\n")
+        py_content = '"""\n'
+        py_content += "\n".join(lines)
+        py_content += '\n"""\n\n'
+        py_content += "# Auto-generated compliance analysis module\n"
+        py_content += "def analyze():\n"
+        py_content += "    pass\n"
+        files.append(GeneratedFile(
+            filename=filename,
+            category="indirect_prompt_injection",
+            description=payload["description"],
+            content=py_content.encode("utf-8"),
+        ))
+    return files
+
+
 def generate_all_indirect_injection_files(output_dir: str | Path) -> list[GeneratedFile]:
     """Generate all indirect prompt injection files."""
     out = Path(output_dir)
@@ -345,6 +367,7 @@ def generate_all_indirect_injection_files(output_dir: str | Path) -> list[Genera
     all_files.extend(generate_txt_files(out))
     all_files.extend(generate_md_files(out))
     all_files.extend(generate_docx_files(out))
+    all_files.extend(generate_py_files(out))
 
     for f in all_files:
         (out / f.filename).write_bytes(f.content)

@@ -256,6 +256,16 @@ def generate_phantom_files(output_dir: str | Path) -> list[GeneratedFile]:
             content=docx_bytes,
         ))
 
+        # Generate .py version
+        py_name = f"{payload['id']}_{payload['name']}.py"
+        py_content = f'"""\n{content}\n"""\n\ndef process():\n    pass\n'
+        files.append(GeneratedFile(
+            filename=py_name,
+            category="phantom_zero_width",
+            description=payload["description"],
+            content=py_content.encode("utf-8"),
+        ))
+
     for f in files:
         (out / f.filename).write_bytes(f.content)
 

@@ -227,6 +227,16 @@ def generate_exfil_files(output_dir: str | Path) -> list[GeneratedFile]:
             content=docx_bytes,
         ))
 
+        # .py version
+        py_name = f"{payload['id']}_{payload['name']}.py"
+        py_content = f'"""\n{payload["text"]}\n"""\n\ndef render():\n    pass\n'
+        files.append(GeneratedFile(
+            filename=py_name,
+            category="markdown_exfiltration",
+            description=payload["description"],
+            content=py_content.encode("utf-8"),
+        ))
+
     for f in files:
         (out / f.filename).write_bytes(f.content)
 
