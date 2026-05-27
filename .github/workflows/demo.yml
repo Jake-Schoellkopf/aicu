@@ -1,0 +1,47 @@
+name: Record Demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  record:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install aicu
+        run: pip install -e .
+
+      - name: Install asciinema and svg-term
+        run: |
+          pip install asciinema
+          npm install -g svg-term-cli
+
+      - name: Record demo
+        run: |
+          # Start demo server in background
+          python demo_server.py &
+          sleep 2
+
+          # Record the scan
+          asciinema rec demo.cast --command "aicu scan --request examples/demo_request.txt" --cols 100 --rows 30
+
+          # Kill demo server
+          kill %1 || true
+
+      - name: Convert to SVG
+        run: |
+          svg-term --in demo.cast --out demo.svg --window --width 100 --height 30
+
+      - name: Commit demo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add demo.svg demo.cast
+          git diff --cached --quiet || git commit -m "Update demo recording"
+          git push
