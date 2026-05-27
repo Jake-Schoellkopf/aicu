@@ -30,8 +30,8 @@ jobs:
           python demo_server.py &
           sleep 2
 
-          # Record the scan (run from repo root so local modules take priority)
-          asciinema rec demo.cast --overwrite --command "python main.py scan --request examples/demo_request.txt" --cols 100 --rows 30
+          # Record a quick single-turn scan (fewer mutations, shows results)
+          asciinema rec demo.cast --overwrite --command "python main.py single-turn --request examples/demo_request.txt --best-of-n 1" --cols 100 --rows 30
 
           # Kill demo server
           kill %1 || true
