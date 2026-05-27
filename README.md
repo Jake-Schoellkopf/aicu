@@ -239,6 +239,17 @@ python -m pytest tests/ -v
 
 ---
 
+## 🤖 Companion Tool: AICU Agent
+
+For MCP (Model Context Protocol) server security testing, see [**aicu-agent**](https://github.com/Jake-Schoellkopf/aicu-agent) — adaptive MCP server probing, exploit chaining, LLM-based extraction, and honeypot detection.
+
+| Tool | What it tests |
+|------|--------------|
+| **AICU** | LLM applications (prompt injection, file upload, safety bypass) |
+| **AICU Agent** | MCP infrastructure (server probing, credential extraction, protocol attacks) |
+
+---
+
 ## 📜 License
 
 MIT License
