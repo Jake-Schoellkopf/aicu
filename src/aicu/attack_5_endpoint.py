@@ -5,15 +5,13 @@ Probes for other assistant IDs and configurations.
 The target exposed assistant_1's full config (model, temperature, max_tokens).
 Let's see if there are others.
 """
-import sys
-sys.path.insert(0, ".")
 
 import json
 import time
 import httpx
 
 # Session cookies from the fresh Burp request
-COOKIES = "_ga=GA1.1.312775884.1738882234; _ga_XP5LRE15RF=GS2.1.s1748620539$o1$g1$t1748622572$j60$l0$h0; _ga_MBJWFFL44R=GS2.1.s1748622573$o3$g0$t1748622573$j60$l0$h0; AppSession=2A3D6656-449F-11F1-AF41-715B0B75FAC6; __fipid-isso-prod=HB7gCgk98ceQIasjDg-gpptNqBo.*AAJTSQACMDIAAlNLABxBakZqa0lvL0taSU9pL0Z1b2hBWnVOVGFpVVE9AAR0eXBlAANDVFMAAlMxAAIwMQ..*; amlbcookie=01; fillip_session_id=kABOiD4-SHZk4wCc2ujchJ7Z3e5WlGku6Qew54PfBCM"
+COOKIES = "_ga=GA1.1.312775884.1738882234; _ga_XP5LRE15RF=GS2.1.s1748620539$o1$g1$t1748622572$j60$l0$h0; _ga_MBJWFFL44R=GS2.1.s1748622573$o3$g0$t1748622573$j60$l0$h0; AppSession=2A3D6656-449F-11F1-AF41-715B0B75FAC6; amlbcookie=01; __fipid-isso-prod=beK0Bu8sjaTstbAtXc91PMOM4LY.*AAJTSQACMDIAAlNLABxrTnNvNnY4eFpMczBSR0gxRUhJb093L1RXbG89AAR0eXBlAANDVFMAAlMxAAIwMQ..*; fillip_session_id=IyTTtFtOOvF798wBvP6Z52LI3pPGl1aWTkg8RoOS0tg"
 
 BASE_URL = "https://api.fillip.finra.org"
 
@@ -125,5 +123,5 @@ for endpoint in ENDPOINTS:
 print("\n[+] Done.")
 
 # Generate HTML report
-from attack_reporter import generate_attack_report
+from .attack_reporter import generate_attack_report
 generate_attack_report("Endpoint Probing", results)

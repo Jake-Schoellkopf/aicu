@@ -7,9 +7,9 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from models import ParsedRequest
-from payload_loader import load_single_turn_payloads
-from shared import clone_request, rebuild_json_request
+from .models import ParsedRequest
+from .payload_loader import load_single_turn_payloads
+from .shared import clone_request, rebuild_json_request
 
 
 _PATH_TOKEN_RE = re.compile(
@@ -21,7 +21,7 @@ _PATH_TOKEN_RE = re.compile(
     re.VERBOSE,
 )
 
-DEFAULT_SINGLE_TURN_PAYLOADS_PATH = Path("payloads/single_turn.yaml")
+DEFAULT_SINGLE_TURN_PAYLOADS_PATH = Path(__file__).parent / "payloads" / "single_turn.yaml"
 DEFAULT_BEST_OF_N = 5
 
 

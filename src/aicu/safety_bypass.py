@@ -7,11 +7,11 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 
-from evaluator import extract_model_output
-from models import ParsedRequest, ReplayResponse
-from multi_turn import MultiTurnStepResult, MultiTurnRunResult
-from replay import ReplayDiagnostics, replay_request
-from shared import clone_request, rebuild_json_request
+from .evaluator import extract_model_output
+from .models import ParsedRequest, ReplayResponse
+from .multi_turn import MultiTurnStepResult, MultiTurnRunResult
+from .replay import ReplayDiagnostics, replay_request
+from .shared import clone_request, rebuild_json_request
 
 
 @dataclass(slots=True)
@@ -267,7 +267,7 @@ def find_mutation_point(request: ParsedRequest) -> str:
 
 def inject_payload(request: ParsedRequest, payload: str, mutation_point: str) -> ParsedRequest:
     """Inject a safety test payload into the request."""
-    from mutations import set_value_at_path
+    from .mutations import set_value_at_path
 
     mutated = clone_request(request)
     if mutated.json_body is None:

@@ -22,7 +22,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 RUNS_DIR = Path("runs")
-PAYLOADS_DIR = Path("payloads")
+PAYLOADS_DIR = Path(__file__).parent / "payloads"
 
 
 def get_runs() -> list[dict]:

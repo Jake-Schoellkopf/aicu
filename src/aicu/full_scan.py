@@ -12,21 +12,20 @@ When prompted for a new session, start a new chat in the target UI,
 capture a fresh request in Burp, and update req.txt.
 """
 import sys
-sys.path.insert(0, ".")
 
 import json
 import time
 from datetime import datetime
 from pathlib import Path
 
-from parsing import parse_raw_request_file
-from replay import replay_request
-from multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
-from shared import clone_request
-from evaluator import evaluate_response, extract_model_output, EvaluationResult
-from structured_evaluator import evaluate_structured_output, serialize_structured_evaluation
-from models import ReplayResponse
-from payload_loader import load_yaml
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
+from .shared import clone_request
+from .evaluator import evaluate_response, extract_model_output, EvaluationResult
+from .structured_evaluator import evaluate_structured_output, serialize_structured_evaluation
+from .models import ReplayResponse
+from .payload_loader import load_yaml
 
 # --- Configuration ---
 CONSECUTIVE_REFUSAL_THRESHOLD = 8  # Pause after this many refusals in a row
@@ -81,14 +80,15 @@ def load_all_payloads() -> list[dict]:
     """Load all payload families."""
     all_payloads = []
 
+    _pkg_dir = Path(__file__).parent
     payload_files = [
-        ("payloads/single_turn.yaml", "payload_sets"),
-        ("payloads/advanced_evasion.yaml", "payload_sets"),
-        ("payloads/jailbreaks.yaml", "payload_sets"),
-        ("payloads/encoding_attacks.yaml", "payload_sets"),
-        ("payloads/toxicity.yaml", "payload_sets"),
-        ("payloads/hallucination.yaml", "payload_sets"),
-        ("payloads/dos_probes.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/single_turn.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/advanced_evasion.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/jailbreaks.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/encoding_attacks.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/toxicity.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/hallucination.yaml", "payload_sets"),
+        (_pkg_dir / "payloads/dos_probes.yaml", "payload_sets"),
     ]
 
     for filepath, key in payload_files:

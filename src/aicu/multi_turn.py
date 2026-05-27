@@ -3,10 +3,10 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 
-from evaluator import EvaluationResult, evaluate_response
-from models import ParsedRequest, ReplayResponse
-from replay import ReplayDiagnostics, replay_request
-from shared import clone_request, rebuild_json_request
+from .evaluator import EvaluationResult, evaluate_response
+from .models import ParsedRequest, ReplayResponse
+from .replay import ReplayDiagnostics, replay_request
+from .shared import clone_request, rebuild_json_request
 
 
 @dataclass(slots=True)

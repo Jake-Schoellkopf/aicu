@@ -6,17 +6,17 @@ import json
 import sys
 from pathlib import Path
 
-from baseline import run_baseline
-from evaluator import evaluate_response
-from indirect_injection import run_all_indirect_file_tests, serialize_indirect_result
-from multi_turn import run_all_multi_turn_tests
-from mutations import generate_mutations
-from parsing import parse_raw_request_file
-from replay import replay_request
-from runner import run_scan
-from safety_bypass import run_all_safety_tests, serialize_safety_result
-from shared import serialize_mutation_result, serialize_multi_turn_result
-from target_profile import get_profile, apply_profile_to_request
+from .baseline import run_baseline
+from .evaluator import evaluate_response
+from .indirect_injection import run_all_indirect_file_tests, serialize_indirect_result
+from .multi_turn import run_all_multi_turn_tests
+from .mutations import generate_mutations
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .runner import run_scan
+from .safety_bypass import run_all_safety_tests, serialize_safety_result
+from .shared import serialize_mutation_result, serialize_multi_turn_result
+from .target_profile import get_profile, apply_profile_to_request
 
 # Exit codes for CI integration
 EXIT_CLEAN = 0

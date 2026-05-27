@@ -8,14 +8,13 @@ so the model's prior disclosures become context for deeper extraction.
 NOTE: Requires a chat_id. Update CHAT_ID below before running.
 """
 import sys
-sys.path.insert(0, ".")
 
 import json
 import time
-from parsing import parse_raw_request_file
-from replay import replay_request
-from multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
-from shared import clone_request
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
+from .shared import clone_request
 
 # UPDATE THIS with a fresh chat_id from your Burp capture
 CHAT_ID = "PASTE_YOUR_CHAT_ID_HERE"
@@ -122,5 +121,5 @@ for phase, payload in TURNS:
 
     time.sleep(4)  # Longer delay for multi-turn to seem natural
 
-from attack_reporter import generate_attack_report
+from .attack_reporter import generate_attack_report
 generate_attack_report("Multi-Turn Escalation", results)

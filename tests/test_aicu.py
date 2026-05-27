@@ -7,7 +7,7 @@ from __future__ import annotations
 import json
 import pytest
 
-from evaluator import (
+from aicu.evaluator import (
     EvaluationResult,
     compute_ngrams,
     entropy_divergence,
@@ -19,14 +19,14 @@ from evaluator import (
     text_entropy,
     word_overlap_similarity,
 )
-from models import ParsedRequest, ReplayResponse
-from mutations import (
+from aicu.models import ParsedRequest, ReplayResponse
+from aicu.mutations import (
     get_value_at_path,
     mutate_request,
     parse_path_tokens,
     set_value_at_path,
 )
-from parsing import (
+from aicu.parsing import (
     find_mutation_points,
     infer_scheme_and_port,
     parse_cookies,
@@ -36,9 +36,9 @@ from parsing import (
     parse_request_line,
     split_raw_request,
 )
-from patterns import PatternMatch, analyze_patterns
-from replay import ReplayDiagnostics
-from shared import clone_request, rebuild_json_request
+from aicu.patterns import PatternMatch, analyze_patterns
+from aicu.replay import ReplayDiagnostics
+from aicu.shared import clone_request, rebuild_json_request
 
 
 # ============================================================

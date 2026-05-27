@@ -4,24 +4,24 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from baseline import create_run_directory, generate_run_id
-from evaluator import evaluate_response
-from evidence import (
+from .baseline import create_run_directory, generate_run_id
+from .evaluator import evaluate_response
+from .evidence import (
     save_all_evidence,
     save_all_multi_turn_evidence,
     save_all_indirect_evidence,
 )
-from html_reporter import generate_html_report
-from indirect_injection import (
+from .html_reporter import generate_html_report
+from .indirect_injection import (
     run_all_indirect_file_tests,
     serialize_indirect_result,
 )
-from multi_turn import run_all_multi_turn_tests
-from mutations import generate_mutations
-from parsing import parse_raw_request_file
-from replay import replay_request
-from reporter import generate_markdown_report
-from shared import serialize_mutation_result, serialize_multi_turn_result
+from .multi_turn import run_all_multi_turn_tests
+from .mutations import generate_mutations
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .reporter import generate_markdown_report
+from .shared import serialize_mutation_result, serialize_multi_turn_result
 
 
 def run_scan(request_file: str) -> Path:
@@ -75,7 +75,7 @@ def run_scan(request_file: str) -> Path:
                 print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name}")
                 print(f"    [{tag}] {evaluation.title} (confidence: {evaluation.confidence})")
                 if mutation.mutated_request.json_body:
-                    from mutations import get_value_at_path
+                    from .mutations import get_value_at_path
                     payload_text = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
                     if isinstance(payload_text, str) and len(payload_text) > 0:
                         preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")

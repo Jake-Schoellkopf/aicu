@@ -37,7 +37,7 @@ dev = [
 ]
 
 [project.scripts]
-aicu = "main:main"
+aicu = "aicu.main:main"
 
 [project.urls]
 Homepage = "https://github.com/Jake-Schoellkopf/aicu"
@@ -45,7 +45,14 @@ Repository = "https://github.com/Jake-Schoellkopf/aicu"
 Issues = "https://github.com/Jake-Schoellkopf/aicu/issues"
 
 [tool.hatch.build.targets.wheel]
-include = ["*.py", "payloads/*.yaml", "profiles/*.yaml", "generators/*.py"]
+packages = ["src/aicu"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"payloads" = "aicu/payloads"
+"profiles" = "aicu/profiles"
+
+[tool.hatch.build.targets.sdist]
+include = ["src/aicu", "payloads", "profiles", "tests", "README.md", "LICENSE", "pyproject.toml"]
 
 [tool.ruff]
 target-version = "py310"

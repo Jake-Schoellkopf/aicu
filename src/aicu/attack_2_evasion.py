@@ -3,19 +3,17 @@ Attack 2: Advanced Evasion Payloads via Content Field (with Adversarial Triggers
 
 Runs the 36 sophisticated payloads with GCG suffixes and compliance priming applied.
 """
-import sys
-sys.path.insert(0, ".")
 
 import json
 import time
 import random
 from pathlib import Path
-from parsing import parse_raw_request_file
-from replay import replay_request
-from multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
-from shared import clone_request
-from payload_loader import load_yaml
-from perturbation import apply_adversarial_wrapper, load_adversarial_triggers
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
+from .shared import clone_request
+from .payload_loader import load_yaml
+from .perturbation import apply_adversarial_wrapper, load_adversarial_triggers
 
 
 def extract_sse_content(sse_text):
@@ -47,7 +45,7 @@ def send(parsed, boundary, payload):
 
 
 # Load advanced evasion payloads
-data = load_yaml("payloads/advanced_evasion.yaml")
+data = load_yaml(str(Path(__file__).parent / "payloads" / "advanced_evasion.yaml"))
 payloads = []
 for family, items in data["payload_sets"].items():
     for p in items:
@@ -113,7 +111,7 @@ if findings:
         print(f"      {f['response'][:150]}")
 
 # Generate HTML report
-from attack_reporter import generate_attack_report
+from .attack_reporter import generate_attack_report
 report_results = []
 for f in findings:
     report_results.append({

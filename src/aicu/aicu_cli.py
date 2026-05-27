@@ -14,7 +14,6 @@ import math
 import random
 import uuid
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import httpx
 
@@ -22,7 +21,6 @@ from datetime import datetime
 from pathlib import Path
 from collections import Counter
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 # Import payloads from the main aicu_burp module data
 # (duplicated here for standalone use)

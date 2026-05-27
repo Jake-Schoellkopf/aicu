@@ -4,8 +4,8 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from parsing import parse_raw_request_file
-from replay import replay_request
+from .parsing import parse_raw_request_file
+from .replay import replay_request
 
 
 RUNS_DIR = Path("runs")

@@ -1,12 +1,11 @@
 """AICU File Upload Tests - path traversal, SSRF, IDOR via attachment metadata"""
 import sys, json, time, uuid, re
-sys.path.insert(0, ".")
 import httpx
 from datetime import datetime
 from pathlib import Path
 
 # Import request parser from CLI
-from aicu_cli import parse_burp_request, extract_sse, analyze
+from .aicu_cli import parse_burp_request, extract_sse, analyze
 
 PROXY = "http://127.0.0.1:8080"
 

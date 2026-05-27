@@ -3,8 +3,8 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from models import ParsedRequest
-from shared import clone_request
+from .models import ParsedRequest
+from .shared import clone_request
 
 
 _BOUNDARY_RE = re.compile(r'boundary=("?)([^";]+)\1', re.IGNORECASE)

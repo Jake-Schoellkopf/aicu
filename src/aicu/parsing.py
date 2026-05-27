@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from urllib.parse import parse_qsl, urlsplit
 
-from models import ParsedRequest
+from .models import ParsedRequest
 
 
 COMMON_MUTATION_KEYS = {

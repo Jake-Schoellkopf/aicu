@@ -3,10 +3,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from pathlib import Path
 
-from payload_loader import load_file_payloads
+from .payload_loader import load_file_payloads
 
 
-DEFAULT_FILE_PAYLOADS_PATH = Path("payloads/file_payloads.yaml")
+DEFAULT_FILE_PAYLOADS_PATH = Path(__file__).parent / "payloads" / "file_payloads.yaml"
 
 
 @dataclass(slots=True)

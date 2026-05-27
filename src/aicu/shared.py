@@ -4,7 +4,7 @@ from __future__ import annotations
 import copy
 import json
 
-from models import ParsedRequest
+from .models import ParsedRequest
 
 
 def clone_request(request: ParsedRequest) -> ParsedRequest:

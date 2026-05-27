@@ -12,7 +12,7 @@ from pathlib import Path
 import httpx
 import yaml
 
-from models import ParsedRequest, ReplayResponse
+from .models import ParsedRequest, ReplayResponse
 
 
 @dataclass
@@ -198,7 +198,7 @@ def inject_conversation_id(request: ParsedRequest, conversation_id: str, profile
     if not profile.conversation_id_inject or not conversation_id:
         return request
 
-    from shared import clone_request, rebuild_json_request
+    from .shared import clone_request, rebuild_json_request
 
     mutated = clone_request(request)
     if mutated.json_body is None:
@@ -214,7 +214,7 @@ def refresh_auth(request: ParsedRequest, profile: TargetProfile) -> ParsedReques
     if not profile.auth_refresh_url:
         return request
 
-    from shared import clone_request
+    from .shared import clone_request
 
     headers = {"Content-Type": "application/json"}
     body = profile.auth_refresh_body.encode("utf-8") if profile.auth_refresh_body else None
@@ -250,7 +250,7 @@ def apply_profile_to_request(request: ParsedRequest, profile: TargetProfile) -> 
     if not profile.extra_headers:
         return request
 
-    from shared import clone_request
+    from .shared import clone_request
 
     mutated = clone_request(request)
     for key, value in profile.extra_headers.items():

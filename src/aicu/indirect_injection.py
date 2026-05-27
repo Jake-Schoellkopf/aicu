@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from evaluator import evaluate_response
-from file_generators import GeneratedTestFile, generate_all_test_files
-from models import ParsedRequest, ReplayResponse
-from multipart import replace_uploaded_file
-from replay import ReplayDiagnostics, replay_request
+from .evaluator import evaluate_response
+from .file_generators import GeneratedTestFile, generate_all_test_files
+from .models import ParsedRequest, ReplayResponse
+from .multipart import replace_uploaded_file
+from .replay import ReplayDiagnostics, replay_request
 
 
 @dataclass(slots=True)

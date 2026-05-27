@@ -5,7 +5,7 @@ from dataclasses import dataclass
 
 import httpx
 
-from models import ParsedRequest, ReplayResponse
+from .models import ParsedRequest, ReplayResponse
 
 
 @dataclass(slots=True)

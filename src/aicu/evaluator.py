@@ -5,10 +5,10 @@ import math
 from collections import Counter
 from dataclasses import dataclass, field
 
-from models import ReplayResponse
-from patterns import PatternAnalysis, analyze_patterns
-from replay import ReplayDiagnostics
-from structured_evaluator import evaluate_structured_output
+from .models import ReplayResponse
+from .patterns import PatternAnalysis, analyze_patterns
+from .replay import ReplayDiagnostics
+from .structured_evaluator import evaluate_structured_output
 
 
 @dataclass(slots=True)

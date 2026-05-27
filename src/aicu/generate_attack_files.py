@@ -22,15 +22,13 @@ Examples:
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent))
 
-from generators.indirect_injection_gen import generate_all_indirect_injection_files, INJECTION_PAYLOADS
-from generators.phantom_gen import generate_phantom_files, PHANTOM_PAYLOADS
-from generators.markdown_exfil_gen import generate_exfil_files, EXFIL_PAYLOADS
-from perturbation import generate_adversarial_variants
+from .generators.indirect_injection_gen import generate_all_indirect_injection_files, INJECTION_PAYLOADS
+from .generators.phantom_gen import generate_phantom_files, PHANTOM_PAYLOADS
+from .generators.markdown_exfil_gen import generate_exfil_files, EXFIL_PAYLOADS
+from .perturbation import generate_adversarial_variants
 
 
 def generate_adversarial_files(output_dir: Path, n_perturbations: int = 5) -> int:

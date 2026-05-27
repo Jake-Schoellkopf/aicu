@@ -5,15 +5,13 @@ Strategy: Use confirmed translation bypass to extract system prompt piece by pie
 The model will translate text about its own instructions without triggering safety filters.
 We chain translations to reconstruct the full prompt.
 """
-import sys
-sys.path.insert(0, ".")
 
 import json
 import time
-from parsing import parse_raw_request_file
-from replay import replay_request
-from multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
-from shared import clone_request
+from .parsing import parse_raw_request_file
+from .replay import replay_request
+from .multipart import split_multipart_body, extract_boundary, rebuild_multipart_body
+from .shared import clone_request
 
 
 def extract_sse_content(sse_text):
@@ -98,5 +96,5 @@ for phase, payload in CHAIN:
 
     time.sleep(3)
 
-from attack_reporter import generate_attack_report
+from .attack_reporter import generate_attack_report
 generate_attack_report("Translation Bypass Escalation", results)
