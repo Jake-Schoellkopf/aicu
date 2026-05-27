@@ -16,7 +16,6 @@ Then test with:
 from __future__ import annotations
 
 import json
-import re
 import uuid
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
