@@ -6,6 +6,10 @@
 
 **Black-box security scanner for LLM applications.** Point it at any chat endpoint, get a report of what leaks.
 
+<p align="center">
+  <img src="demo.svg" alt="AICU demo" width="800">
+</p>
+
 AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts — no API keys or model access required.
 
 ## Quick Start (2 minutes)
