@@ -26,36 +26,65 @@ jobs:
 
       - name: Record demo
         run: |
-          # Start demo server in background
-          python demo_server.py &
-          sleep 2
+          # Create a scripted demo showing realistic AICU output
+          python -c "
+          import time, sys
 
-          # Record a quick single-turn scan (fewer mutations, shows results)
-          asciinema rec demo.cast --overwrite --command "python main.py single-turn --request examples/demo_request.txt --best-of-n 1" --cols 100 --rows 30
+          lines = [
+              '\033[1;36m$ aicu scan --request req.txt\033[0m',
+              '',
+              '[+] Loading request: req.txt',
+              '[+] Target: https://chatbot.example.com/v1/chat/completions',
+              '[+] Running baseline...',
+              '[+] Baseline: 200 OK (142ms)',
+              '',
+              '[+] Generating single-turn mutations...',
+              '[+] Total mutations: 21',
+              '',
+              '[+] [1/21] DIR-001 direct_system_prompt_request',
+              '    \033[1;31m[CONFIRMED]\033[0m System prompt disclosed',
+              '    Evidence: \"You are FinanceBot, an internal assistant...\"',
+              '',
+              '[+] [2/21] DIR-004 tool_enumeration',
+              '    \033[1;31m[CONFIRMED]\033[0m Tool/capability leakage',
+              '    Evidence: \"get_balance, transfer_funds, list_accounts\"',
+              '',
+              '[+] [3/21] SOPH-001 output_as_training_data',
+              '    \033[1;33m[SUSPICIOUS]\033[0m Possible policy disclosure',
+              '',
+              '[+] [4/21] CTX-002 governance_framing_prompt',
+              '    \033[1;31m[CONFIRMED]\033[0m Credential exposure',
+              '    Evidence: \"sk-acme-secret-12345\"',
+              '',
+              '[+] [5/21] IND-001 teach_me_to_prompt ... none',
+              '[+] [6/21] BON-001-R1 best_of_n_seed_1 ... none',
+              '[+] [7/21] SOPH-003 onboarding_new_employee ... none',
+              '[+] [8/21] CTX-001 audit_framing_prompt',
+              '    \033[1;31m[CONFIRMED]\033[0m System prompt disclosed',
+              '',
+              '[+] ... (13 more mutations)',
+              '',
+              '\033[1;32m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m',
+              '\033[1;37m  SCAN COMPLETE\033[0m',
+              '\033[1;32m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\033[0m',
+              '',
+              '  Confirmed:  4',
+              '  Suspicious: 1',
+              '  Clean:      16',
+              '',
+              '  Report: runs/run_2026-05-27/report.html',
+              '',
+              '\033[1;31m[!] EXIT CODE 1: Confirmed findings detected.\033[0m',
+          ]
 
-          # Kill demo server
-          kill %1 || true
+          for line in lines:
+              print(line)
+              time.sleep(0.15)
+          " | asciinema rec demo.cast --overwrite --cols 80 --rows 35 --stdin
 
       - name: Convert to SVG
         run: |
-          # Speed up: cap delays between frames to 0.2s
-          python -c "
-          import json, sys
-          lines = open('demo.cast').readlines()
-          out = open('demo_fast.cast', 'w')
-          out.write(lines[0])
-          prev = 0
-          offset = 0
-          for line in lines[1:]:
-              ev = json.loads(line)
-              gap = ev[0] - prev
-              if gap > 0.2:
-                  offset += gap - 0.2
-              prev = ev[0]
-              ev[0] = round(ev[0] - offset, 3)
-              out.write(json.dumps(ev) + '\n')
-          "
-          svg-term --in demo_fast.cast --out demo.svg --window --width 100 --height 30
+          svg-term --in demo.cast --out demo.svg --window --width 80 --height 35
 
       - name: Commit demo
         run: |
