@@ -114,8 +114,10 @@ Reports land in `runs/run_<timestamp>/`:
 ## Install
 
 ```bash
-pip install -e .          # editable install
-pip install -e ".[dev]"   # with test/lint tools
+pip install aicu-scanner    # from PyPI
+# or
+pip install -e .            # editable install from source
+pip install -e ".[dev]"     # with test/lint tools
 ```
 
 ## Run Tests
