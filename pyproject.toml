@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aicu-scanner"
-version = "0.1.2"
+version = "0.1.3"
 description = "LLM application security testing framework — prompt injection, safety bypass, and indirect injection scanner"
 readme = "README.md"
 license = "MIT"
@@ -45,7 +45,7 @@ Repository = "https://github.com/Jake-Schoellkopf/aicu"
 Issues = "https://github.com/Jake-Schoellkopf/aicu/issues"
 
 [tool.hatch.build.targets.wheel]
-include = ["*.py", "payloads/*.yaml", "profiles/*.yaml"]
+include = ["*.py", "payloads/*.yaml", "profiles/*.yaml", "generators/*.py"]
 
 [tool.ruff]
 target-version = "py310"

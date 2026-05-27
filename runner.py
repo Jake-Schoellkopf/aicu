@@ -75,9 +75,8 @@ def run_scan(request_file: str) -> Path:
                 print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name}")
                 print(f"    [{tag}] {evaluation.title} (confidence: {evaluation.confidence})")
                 if mutation.mutated_request.json_body:
-                    from mutations import get_value_at_path, parse_path_tokens
-                    tokens = parse_path_tokens(mutation.mutation_point)
-                    payload_text = get_value_at_path(mutation.mutated_request.json_body, tokens)
+                    from mutations import get_value_at_path
+                    payload_text = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
                     if isinstance(payload_text, str) and len(payload_text) > 0:
                         preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
                         print(f"    Payload:  \"{preview}\"")
