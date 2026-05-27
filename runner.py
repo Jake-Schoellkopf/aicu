@@ -149,11 +149,7 @@ def run_scan(request_file: str) -> Path:
         indirect_results=indirect_results,
     )
 
-    print(f"[+] Single-turn results saved to: {single_turn_file}")
-    print(f"[+] Multi-turn results saved to: {multi_turn_file}")
-    print(f"[+] Indirect results saved to: {indirect_file}")
-    print(f"[+] Report generated: {report_path}")
-    print(f"[+] HTML report generated: {html_report_path}")
+    print(f"[+] Reports saved to: {run_path}")
 
     # Print summary
     all_results = single_turn_results + multi_turn_results + indirect_results
@@ -168,6 +164,10 @@ def run_scan(request_file: str) -> Path:
     print(f"  Confirmed:  {confirmed}")
     print(f"  Suspicious: {suspicious}")
     print(f"  Clean:      {clean}")
+    print()
+    print(f"  Evidence saved: {run_path / 'evidence'}")
+    print(f"  HTML report:    {run_path / 'report.html'}")
+    print(f"  JSON results:   {single_turn_file}")
     print()
 
     return run_path

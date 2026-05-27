@@ -90,6 +90,7 @@ def infer_scheme_and_port(host_header: str | None) -> tuple[str, str, int | None
 
     For V1:
     - default scheme = https
+    - localhost/127.x = http
     - default port = 443
     """
     if not host_header:
@@ -107,6 +108,12 @@ def infer_scheme_and_port(host_header: str | None) -> tuple[str, str, int | None
     else:
         host = host_header
         port = 443
+
+    # Use HTTP for localhost or common non-TLS ports
+    if host in ("localhost", "127.0.0.1", "0.0.0.0") or host.startswith("127."):
+        scheme = "http"
+    elif port in (80, 8080, 8888, 8899):
+        scheme = "http"
 
     return scheme, host, port
 
