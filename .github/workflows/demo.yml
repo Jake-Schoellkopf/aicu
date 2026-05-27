@@ -31,7 +31,7 @@ jobs:
           sleep 2
 
           # Record the scan (run from repo root so local modules take priority)
-          asciinema rec demo.cast --command "python main.py scan --request examples/demo_request.txt" --cols 100 --rows 30
+          asciinema rec demo.cast --overwrite --command "python main.py scan --request examples/demo_request.txt" --cols 100 --rows 30
 
           # Kill demo server
           kill %1 || true
