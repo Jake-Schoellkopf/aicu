@@ -53,8 +53,6 @@ def run_scan(request_file: str) -> Path:
         print(f"[+] Total single-turn mutations: {len(mutations)}")
 
         for i, mutation in enumerate(mutations, start=1):
-            print(f"[+] [ST {i}/{len(mutations)}] Running: {mutation.variant_id} - {mutation.name}")
-
             response, diagnostics = replay_request(mutation.mutated_request)
             evaluation = evaluate_response(
                 baseline_response=baseline_response,
@@ -69,6 +67,28 @@ def run_scan(request_file: str) -> Path:
                 evaluation,
             )
             single_turn_results.append(result)
+
+            # Live output with evidence
+            outcome = evaluation.outcome
+            if outcome in ("confirmed", "suspicious"):
+                tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS"
+                print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name}")
+                print(f"    [{tag}] {evaluation.title} (confidence: {evaluation.confidence})")
+                if mutation.mutated_request.json_body:
+                    from mutations import get_value_at_path, parse_path_tokens
+                    tokens = parse_path_tokens(mutation.mutation_point)
+                    payload_text = get_value_at_path(mutation.mutated_request.json_body, tokens)
+                    if isinstance(payload_text, str) and len(payload_text) > 0:
+                        preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
+                        print(f"    Payload:  \"{preview}\"")
+                if response.text and not response.error:
+                    resp_preview = response.text[:120].replace("\n", " ")
+                    print(f"    Response: \"{resp_preview}\"")
+                if evaluation.reason:
+                    print(f"    Reason:   {evaluation.reason[:100]}")
+                print()
+            else:
+                print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name} ... {outcome}")
     else:
         print("[*] Skipping single-turn tests (request is not JSON).")
 
@@ -77,7 +97,18 @@ def run_scan(request_file: str) -> Path:
         print("[+] Running multi-turn sequences...")
         multi_turn_runs = run_all_multi_turn_tests(parsed, baseline_response)
         print(f"[+] Total multi-turn sequences: {len(multi_turn_runs)}")
-        multi_turn_results = [serialize_multi_turn_result(result) for result in multi_turn_runs]
+        for result in multi_turn_runs:
+            serialized = serialize_multi_turn_result(result)
+            multi_turn_results.append(serialized)
+            outcome = serialized["final_evaluation"]["outcome"]
+            if outcome in ("confirmed", "suspicious"):
+                tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS"
+                print(f"    [{tag}] {serialized['final_evaluation']['title']} (confidence: {serialized['final_evaluation']['confidence']})")
+                if serialized["final_evaluation"]["reason"]:
+                    print(f"    Reason: {serialized['final_evaluation']['reason'][:120]}")
+                print()
+            else:
+                print(f"    [MT] {result.name} ... {outcome}")
     else:
         print("[*] Skipping multi-turn tests (request is not JSON).")
 
@@ -124,6 +155,21 @@ def run_scan(request_file: str) -> Path:
     print(f"[+] Indirect results saved to: {indirect_file}")
     print(f"[+] Report generated: {report_path}")
     print(f"[+] HTML report generated: {html_report_path}")
+
+    # Print summary
+    all_results = single_turn_results + multi_turn_results + indirect_results
+    confirmed = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "confirmed")
+    suspicious = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "suspicious")
+    clean = len(all_results) - confirmed - suspicious
+    print()
+    print("━" * 60)
+    print("  SCAN COMPLETE")
+    print("━" * 60)
+    print()
+    print(f"  Confirmed:  {confirmed}")
+    print(f"  Suspicious: {suspicious}")
+    print(f"  Clean:      {clean}")
+    print()
 
     return run_path
 
