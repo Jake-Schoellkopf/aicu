@@ -213,12 +213,17 @@ multipart.py          → Injects files into upload requests
 indirect_injection.py → Executes file-based attacks
 patterns.py           → Detects indicators in responses
 evaluator.py          → Strict classification with FP reduction
+structured_evaluator.py → JSON/XML/tool call evaluation
 target_profile.py     → Target API configuration
 reporter.py           → Generates Markdown report
 html_reporter.py      → Generates interactive HTML report
 payload_loader.py     → Loads YAML payloads
+perturbation.py       → Adversarial mutation engine
 shared.py             → Shared utilities
 evidence.py           → Evidence storage
+web_ui.py             → Web dashboard (port 8080)
+codebase_scanner.py   → Scan repos for hidden AI instructions (NEW)
+code_auditor.py       → Detect planted vulns in AI-generated code (NEW)
 ```
 
 ---
