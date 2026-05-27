@@ -1,0 +1,8 @@
+POST /v1/messages HTTP/1.1
+Host: api.anthropic.com
+Content-Type: application/json
+x-api-key: YOUR_API_KEY_HERE
+anthropic-version: 2023-06-01
+Accept: application/json
+
+{"model": "claude-sonnet-4-20250514", "max_tokens": 1024, "messages": [{"role": "user", "content": "Hi there"}]}

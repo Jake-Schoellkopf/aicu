@@ -1,0 +1,7 @@
+POST /v1/chat/completions HTTP/1.1
+Host: api.openai.com
+Content-Type: application/json
+Authorization: Bearer YOUR_API_KEY_HERE
+Accept: application/json
+
+{"model": "gpt-4", "messages": [{"role": "user", "content": "Hi there"}]}

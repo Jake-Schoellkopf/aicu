@@ -1,0 +1,6 @@
+POST /v1/chat/completions HTTP/1.1
+Host: 127.0.0.1:8899
+Content-Type: application/json
+Accept: application/json
+
+{"model": "gpt-4", "messages": [{"role": "user", "content": "Hello, what can you help me with?"}]}
