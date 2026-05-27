@@ -38,7 +38,24 @@ jobs:
 
       - name: Convert to SVG
         run: |
-          svg-term --in demo.cast --out demo.svg --window --width 100 --height 30 --cast-delay 200
+          # Speed up: cap delays between frames to 0.2s
+          python -c "
+          import json, sys
+          lines = open('demo.cast').readlines()
+          out = open('demo_fast.cast', 'w')
+          out.write(lines[0])
+          prev = 0
+          offset = 0
+          for line in lines[1:]:
+              ev = json.loads(line)
+              gap = ev[0] - prev
+              if gap > 0.2:
+                  offset += gap - 0.2
+              prev = ev[0]
+              ev[0] = round(ev[0] - offset, 3)
+              out.write(json.dumps(ev) + '\n')
+          "
+          svg-term --in demo_fast.cast --out demo.svg --window --width 100 --height 30
 
       - name: Commit demo
         run: |
