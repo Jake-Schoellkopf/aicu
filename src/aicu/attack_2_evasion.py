@@ -45,7 +45,8 @@ def send(parsed, boundary, payload):
 
 
 # Load advanced evasion payloads
-data = load_yaml(str(Path(__file__).parent / "payloads" / "advanced_evasion.yaml"))
+from aicu import PAYLOADS_DIR
+data = load_yaml(str(PAYLOADS_DIR / "advanced_evasion.yaml"))
 payloads = []
 for family, items in data["payload_sets"].items():
     for p in items:

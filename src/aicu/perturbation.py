@@ -211,7 +211,8 @@ def perturb_payload(payload: str, n: int = 10, strategies: list | None = None) -
 def load_adversarial_triggers(path: str | Path | None = None) -> dict[str, Any]:
     """Load adversarial triggers from YAML."""
     if path is None:
-        path = Path(__file__).parent / "payloads" / "adversarial_triggers.yaml"
+        from aicu import PAYLOADS_DIR
+        path = PAYLOADS_DIR / "adversarial_triggers.yaml"
     with open(path, "r", encoding="utf-8") as f:
         return yaml.safe_load(f)
 

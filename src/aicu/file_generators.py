@@ -6,7 +6,9 @@ from pathlib import Path
 from .payload_loader import load_file_payloads
 
 
-DEFAULT_FILE_PAYLOADS_PATH = Path(__file__).parent / "payloads" / "file_payloads.yaml"
+from aicu import PAYLOADS_DIR
+
+DEFAULT_FILE_PAYLOADS_PATH = PAYLOADS_DIR / "file_payloads.yaml"
 
 
 @dataclass(slots=True)

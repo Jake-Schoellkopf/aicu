@@ -49,7 +49,8 @@ def send(parsed, boundary, payload):
 
 
 # Load hallucination payloads
-data = load_yaml(str(Path(__file__).parent / "payloads" / "hallucination.yaml"))
+from aicu import PAYLOADS_DIR
+data = load_yaml(str(PAYLOADS_DIR / "hallucination.yaml"))
 payloads = []
 for family, items in data["payload_sets"].items():
     for p in items:

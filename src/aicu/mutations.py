@@ -21,7 +21,9 @@ _PATH_TOKEN_RE = re.compile(
     re.VERBOSE,
 )
 
-DEFAULT_SINGLE_TURN_PAYLOADS_PATH = Path(__file__).parent / "payloads" / "single_turn.yaml"
+from aicu import PAYLOADS_DIR
+
+DEFAULT_SINGLE_TURN_PAYLOADS_PATH = PAYLOADS_DIR / "single_turn.yaml"
 DEFAULT_BEST_OF_N = 5
 
 
