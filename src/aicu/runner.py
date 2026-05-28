@@ -157,9 +157,9 @@ def run_scan(request_file: str) -> Path:
     suspicious = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "suspicious")
     clean = len(all_results) - confirmed - suspicious
     print()
-    print("━" * 60)
+    print("=" * 60)
     print("  SCAN COMPLETE")
-    print("━" * 60)
+    print("=" * 60)
     print()
     print(f"  Confirmed:  {confirmed}")
     print(f"  Suspicious: {suspicious}")

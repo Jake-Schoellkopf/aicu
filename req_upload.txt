@@ -1,0 +1,15 @@
+POST /api/organizations/7891d7ba-77c3-431a-a6be-b5dc8fc0f7f1/chat_conversations/be1c532d-95b4-4de3-ad5c-dff59bcb86a9/completion HTTP/2
+Host: claude.ai
+Cookie: _fbp=fb.1.1778818706214.51899540088305940; anthropic-device-id=5c40ec65-15d2-4107-b41d-5558d2546962; user-sidebar-visible-on-load=true; CH-prefers-color-scheme=light; __ssid=827c9f21-9e05-44a0-8a4e-225089168451; _gcl_au=1.1.541943246.1778818710; lastActiveOrg=7891d7ba-77c3-431a-a6be-b5dc8fc0f7f1; ajs_anonymous_id=claudeai.v1.2147d6ff-8b84-4408-b613-7f9c2b657720; sessionKey=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; sessionKeyLC=1778820341238; _cfuvid=ShT5.gv1un9qjm0oIxyD8gTxXrgQ6PserjQGb91Jqzg-1779326919.4224286-1.0.1.1-2Pv4IWCEVPhhYIVP8Xl5gUbf1AuTOXfcS8Q4c1in9P8; cf_clearance=i5c.BrCJW5NrgaLn8_DrsqgseY2nLiuguTh4ebUrvbA-1779329983-1.2.1.1-s21oJXmGWrydLfcz5h6fhXZNN7ewnTCXQiLax6KdN0M47VO6wqMHEwr5_2tIfr2ZxhydS4fKg_6UGeNx9Zp_rx0YgPfRX9NbXU6WbWMgcA_PH2c72_O5SSkwwPjikPOFcRBkTDjlcVMlFthrZCfXquRJHlbi6AEFDaE544sBwZdlGxUJ1wWk.YF6rj5nhwkeU0KeSI8dgxTPT9h0vaiQPdXxRD3Ipj8LtgnT0Yf0TXt2aOTX9TCN9qfEigTXfC5OLF0E0fjSQAHUZRs5blFWr17_lMYdVtDA.IrR2xJr8prUhaydx.Nq.0m9mi3Byc_fF4BCd4X0z5QGqDcxCkcnv7aSs8lCr1FFA29Ww.QfLGeKUbTumsbnPseNYfG6pph6viD3OQi4k.06u.KvXpry0tbdSAiJAsixzCXXjO6oRkw; __cf_bm=u.OEz6fFVsoRMI9p7vwxXzzfmr0yuNHlo2j1Mfhm_xU-1779379930.239758-1.0.1.1-KYzJuR2t2P9cCpG_ttRLijP4QP5zl.sjUgvESJcvkKhRa_o2WP2NrVNegj_qAMB3gTDS4AS2JhyOcDmH_KFTpLaFSmxOGhLIYYHffIpPH4yaHMHDliUkRtWONO6o9yU0; _dd_s=aid=d37a0560-2fb9-4dbb-a0d8-b0bb2906d083&rum=2&id=fe131102-9f4c-4500-ad68-3c19cd474613&created=1779379932034&expire=1779380881454
+Content-Type: application/json
+Accept: text/event-stream
+User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/146.0.0.0 Safari/537.36
+Origin: https://claude.ai
+Referer: https://claude.ai/chat/be1c532d-95b4-4de3-ad5c-dff59bcb86a9
+Sec-Fetch-Site: same-origin
+Sec-Fetch-Mode: cors
+Sec-Fetch-Dest: empty
+Anthropic-Client-Platform: web_claude_ai
+Anthropic-Device-Id: 5c40ec65-15d2-4107-b41d-5558d2546962
+
+{"prompt":"analyze this","parent_message_uuid":"019e4837-026e-75ea-8635-7020bd9896ab","timezone":"America/New_York","personalized_styles":[{"type":"default","key":"Default","name":"Normal","nameKey":"normal_style_name","prompt":"Normal\n","summary":"Default responses from Claude","summaryKey":"normal_style_summary","isDefault":true}],"locale":"en-US","model":"claude-sonnet-4-5-20250929","tools":[{"type":"web_search_v0","name":"web_search"},{"type":"artifacts_v0","name":"artifacts"},{"type":"repl_v0","name":"repl"}],"turn_message_uuids":{"human_message_uuid":"019e4b4f-cf30-701c-a173-dda3f2fb3061","assistant_message_uuid":"019e4b4f-cf30-7b39-81f6-7ccfa1cdf9a1"},"attachments":[],"files":["128873b6-efb5-4efb-b947-1385df0ef5df"],"sync_sources":[],"rendering_mode":"messages"}

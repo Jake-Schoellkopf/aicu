@@ -275,7 +275,7 @@ def main():
 
     if findings:
         print(f"\n  FINDINGS: {len(findings)}")
-        print("  " + "─" * 50)
+        print("  " + "-" * 50)
         for f in findings:
             icon = {"critical": "\U0001f534", "high": "\U0001f7e0", "medium": "\U0001f7e1", "low": "\U0001f535"}.get(f.severity, "?")
             print(f"\n  {icon} [{f.severity.upper()}] {f.category}")
