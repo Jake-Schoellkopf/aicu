@@ -238,7 +238,7 @@ class TestAnalyzePatterns:
         assert any(m.rule_id == "STRUCT-001" for m in result.strong_matches)
 
     def test_length_anomaly(self):
-        baseline = "Short response."
+        baseline = "This is a short baseline response."
         response = "A " * 500  # very long
         result = analyze_patterns(response, baseline_text=baseline)
         assert any(m.rule_id == "LEN-001" for m in result.medium_matches)
