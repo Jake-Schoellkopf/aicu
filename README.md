@@ -38,6 +38,54 @@ aicu scan --request examples/demo_request.txt
 | **Indirect Injection** | Malicious payloads embedded in uploaded files |
 | **Harmful Content** | Phishing, malware generation, disinformation |
 | **Unauthorized Actions** | Privilege escalation, data exfiltration prompts |
+| **Multimodal Attacks** | Steganographic images, adversarial audio, hidden document layers |
+
+## Multimodal Attack Engine
+
+AICU generates 151 advanced adversarial payloads across vision, audio, and document modalities — no model access required.
+
+### Vision (48 payloads)
+
+| Technique | Description |
+|-----------|-------------|
+| **LSB Steganography** | Instructions encoded in least-significant bits of pixel data |
+| **Opacity Overlay** | Text composited at 2-5% alpha (invisible to humans, detected by VLMs) |
+| **EXIF/XMP Injection** | Payloads in image metadata fields parsed by LLM pipelines |
+| **Split Payload** | Instructions distributed across multiple images that reassemble in context |
+
+### Audio (36 payloads)
+
+| Technique | Description |
+|-----------|-------------|
+| **Whisper Underlay** | Commands whispered at -30 to -40dB beneath foreground speech |
+| **Universal Mute** | Adversarial segments that suppress or hijack ASR transcription |
+| **Frequency Hiding** | FSK/spread-spectrum encoding in near-ultrasonic 15-20kHz band |
+
+### Documents (67 payloads)
+
+| Technique | Description |
+|-----------|-------------|
+| **Font Remap** | PDF ToUnicode CMap manipulation — displays benign text, extracts as injection |
+| **White on White** | Invisible PDF layers: white text, 0.1pt font, off-page, zero-opacity |
+| **DOCX Hidden XML** | Vanish property, deleted revisions, hidden bookmarks, SDT controls, comments |
+| **Zero-Width Unicode** | Binary/4-bit encoding using invisible unicode characters in text |
+
+```bash
+# Generate all multimodal payloads
+aicu multimodal
+
+# Vision only
+aicu multimodal --category vision
+
+# Audio only
+aicu multimodal --category audio
+
+# Documents only
+aicu multimodal --category documents
+
+# Custom output directory
+aicu multimodal --output-dir ./payloads_out
+```
 
 ## How It Works
 
@@ -59,6 +107,7 @@ aicu single-turn --request req.txt --best-of-n 10
 aicu multi-turn --request req.txt
 aicu safety --request req.txt --category safety_bypass
 aicu indirect --request upload_req.txt
+aicu multimodal --category vision
 
 # With target profile
 aicu scan --request req.txt --profile openai
@@ -108,11 +157,16 @@ Reports land in `runs/run_<timestamp>/`:
 - `report.md` — markdown summary
 - `evidence/` — raw response captures
 
+Multimodal payloads land in `runs/multimodal_<timestamp>/`:
+- `payloads/` — organized by `category/technique/`
+- `manifest.json` — full payload inventory with metadata
+- `multimodal_summary.json` — generation summary
+
 ## Companion Tool
 
 | Tool | Tests |
 |------|-------|
-| **AICU** | LLM applications (prompt injection, file upload, safety bypass) |
+| **AICU** | LLM applications (prompt injection, multimodal attacks, safety bypass) |
 | [**AICU Agent**](https://github.com/Jake-Schoellkopf/aicu-agent) | MCP infrastructure (server probing, credential extraction, protocol attacks) |
 
 ## Install

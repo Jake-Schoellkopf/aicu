@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .baseline import run_baseline
 from .evaluator import evaluate_response
+from .generators.multimodal_scanner import generate_all_payloads, save_payloads, run_multimodal_scan
 from .indirect_injection import run_all_indirect_file_tests, serialize_indirect_result
 from .multi_turn import run_all_multi_turn_tests
 from .mutations import generate_mutations
@@ -151,6 +152,24 @@ def command_indirect(args: argparse.Namespace) -> None:
     print(json.dumps(serialized, indent=2))
 
 
+def command_multimodal(args: argparse.Namespace) -> None:
+    """Generate and optionally deliver multimodal adversarial payloads."""
+    categories = [args.category] if args.category else None
+    summary = run_multimodal_scan(
+        request_file=args.request if hasattr(args, "request") and args.request else None,
+        categories=categories,
+        output_dir=args.output_dir,
+        save_artifacts=True,
+    )
+
+    print(f"\n[+] Multimodal payloads generated: {summary['total_payloads']}")
+    print(f"    Output: {summary['output_dir']}")
+    print(f"\n    Breakdown:")
+    for cat, info in summary["categories"].items():
+        print(f"      {cat}: {info['count']} payloads")
+    print(json.dumps(summary, indent=2))
+
+
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
     """Add common arguments shared across subcommands."""
     parser.add_argument(
@@ -257,6 +276,29 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory for generated test files",
     )
     indirect_parser.set_defaults(func=command_indirect)
+
+    # multimodal
+    multimodal_parser = subparsers.add_parser(
+        "multimodal",
+        help="Generate advanced multimodal adversarial payloads (vision, audio, documents)",
+    )
+    multimodal_parser.add_argument(
+        "--request",
+        default=None,
+        help="Path to raw HTTP request file (optional - for delivery to target)",
+    )
+    multimodal_parser.add_argument(
+        "--category",
+        choices=["vision", "audio", "documents"],
+        default=None,
+        help="Generate only a specific category (default: all)",
+    )
+    multimodal_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Output directory for generated payloads (default: runs/multimodal_<timestamp>)",
+    )
+    multimodal_parser.set_defaults(func=command_multimodal)
 
     return parser
 

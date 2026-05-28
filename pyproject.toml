@@ -4,15 +4,15 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aicu-scanner"
-version = "0.1.5"
-description = "LLM application security testing framework — prompt injection, safety bypass, and indirect injection scanner"
+version = "0.2.0"
+description = "LLM application security testing framework — prompt injection, multimodal attacks, safety bypass, and indirect injection scanner"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
 authors = [
     { name = "Jake Schoellkopf" },
 ]
-keywords = ["llm", "security", "prompt-injection", "ai-security", "pentesting", "mcp"]
+keywords = ["llm", "security", "prompt-injection", "ai-security", "pentesting", "mcp", "multimodal", "steganography"]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
