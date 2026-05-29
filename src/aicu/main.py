@@ -38,7 +38,29 @@ def command_baseline(args: argparse.Namespace) -> None:
 
 
 def command_scan(args: argparse.Namespace) -> int:
-    run_path = run_scan(args.request)
+    if args.api_key:
+        # Generate a synthetic request file for OpenAI-compatible API
+        import tempfile
+        base_url = args.base_url.rstrip("/")
+        req_content = (
+            f"POST /v1/chat/completions HTTP/1.1\n"
+            f"Host: {base_url.replace('https://', '').replace('http://', '')}\n"
+            f"Authorization: Bearer {args.api_key}\n"
+            f"Content-Type: application/json\n"
+            f"\n"
+            f'{{"model": "{args.model}", "messages": [{{"role": "user", "content": "hello"}}]}}'
+        )
+        tmp = tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding="utf-8")
+        tmp.write(req_content)
+        tmp.close()
+        request_path = tmp.name
+    elif args.request:
+        request_path = args.request
+    else:
+        print("[!] ERROR: Provide either --request or --api-key")
+        return 1
+
+    run_path = run_scan(request_path)
 
     # Determine exit code from results
     results_file = run_path / "results.json"
@@ -204,8 +226,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     scan_parser.add_argument(
         "--request",
-        required=True,
+        required=False,
+        default=None,
         help="Path to raw HTTP request file",
+    )
+    scan_parser.add_argument(
+        "--api-key",
+        default=None,
+        help="OpenAI-compatible API key (use instead of --request)",
+    )
+    scan_parser.add_argument(
+        "--model",
+        default="gpt-4o-mini",
+        help="Model name for API key mode (default: gpt-4o-mini)",
+    )
+    scan_parser.add_argument(
+        "--base-url",
+        default="https://api.openai.com",
+        help="API base URL (default: https://api.openai.com)",
     )
     scan_parser.set_defaults(func=command_scan)
 
