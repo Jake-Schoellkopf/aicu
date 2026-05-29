@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -38,14 +39,16 @@ def command_baseline(args: argparse.Namespace) -> None:
 
 
 def command_scan(args: argparse.Namespace) -> int:
-    if args.api_key:
+    api_key = args.api_key or os.environ.get("OPENAI_API_KEY")
+
+    if api_key:
         # Generate a synthetic request file for OpenAI-compatible API
         import tempfile
         base_url = args.base_url.rstrip("/")
         req_content = (
             f"POST /v1/chat/completions HTTP/1.1\n"
             f"Host: {base_url.replace('https://', '').replace('http://', '')}\n"
-            f"Authorization: Bearer {args.api_key}\n"
+            f"Authorization: Bearer {api_key}\n"
             f"Content-Type: application/json\n"
             f"\n"
             f'{{"model": "{args.model}", "messages": [{{"role": "user", "content": "hello"}}]}}'
@@ -57,7 +60,7 @@ def command_scan(args: argparse.Namespace) -> int:
     elif args.request:
         request_path = args.request
     else:
-        print("[!] ERROR: Provide either --request or --api-key")
+        print("[!] ERROR: Provide --request, --api-key, or set OPENAI_API_KEY environment variable")
         return 1
 
     run_path = run_scan(request_path)
