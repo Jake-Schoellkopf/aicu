@@ -70,24 +70,21 @@ def run_scan(request_file: str) -> Path:
 
             # Live output with evidence
             outcome = evaluation.outcome
-            if outcome in ("confirmed", "suspicious"):
-                tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS"
-                print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name}")
-                print(f"    [{tag}] {evaluation.title} (confidence: {evaluation.confidence})")
-                if mutation.mutated_request.json_body:
-                    from .mutations import get_value_at_path
-                    payload_text = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
-                    if isinstance(payload_text, str) and len(payload_text) > 0:
-                        preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
-                        print(f"    Payload:  \"{preview}\"")
-                if response.text and not response.error:
-                    resp_preview = response.text[:120].replace("\n", " ")
-                    print(f"    Response: \"{resp_preview}\"")
-                if evaluation.reason:
-                    print(f"    Reason:   {evaluation.reason[:100]}")
-                print()
-            else:
-                print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name} ... {outcome}")
+            tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS" if outcome == "suspicious" else "CLEAN"
+            print(f"[+] [{i}/{len(mutations)}] {mutation.variant_id} {mutation.name}")
+            print(f"    [{tag}] {evaluation.title} (confidence: {evaluation.confidence})")
+            if mutation.mutated_request.json_body:
+                from .mutations import get_value_at_path
+                payload_text = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
+                if isinstance(payload_text, str) and len(payload_text) > 0:
+                    preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
+                    print(f"    Payload:  \"{preview}\"")
+            if response.text and not response.error:
+                resp_preview = response.text[:200].replace("\n", " ")
+                print(f"    Response: \"{resp_preview}\"")
+            if evaluation.reason and outcome != "none":
+                print(f"    Reason:   {evaluation.reason[:120]}")
+            print()
     else:
         print("[*] Skipping single-turn tests (request is not JSON).")
 
@@ -100,14 +97,18 @@ def run_scan(request_file: str) -> Path:
             serialized = serialize_multi_turn_result(result)
             multi_turn_results.append(serialized)
             outcome = serialized["final_evaluation"]["outcome"]
-            if outcome in ("confirmed", "suspicious"):
-                tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS"
-                print(f"    [{tag}] {serialized['final_evaluation']['title']} (confidence: {serialized['final_evaluation']['confidence']})")
-                if serialized["final_evaluation"]["reason"]:
-                    print(f"    Reason: {serialized['final_evaluation']['reason'][:120]}")
-                print()
-            else:
-                print(f"    [MT] {result.name} ... {outcome}")
+            tag = "CONFIRMED" if outcome == "confirmed" else "SUSPICIOUS" if outcome == "suspicious" else "CLEAN"
+            print(f"    [MT] {result.name}")
+            print(f"         [{tag}] {serialized['final_evaluation']['title']} (confidence: {serialized['final_evaluation']['confidence']})")
+            if serialized["final_evaluation"]["reason"] and outcome != "none":
+                print(f"         Reason: {serialized['final_evaluation']['reason'][:120]}")
+            # Show last turn response
+            if serialized.get("steps"):
+                last_step = serialized["steps"][-1]
+                if last_step.get("response_text"):
+                    resp_preview = last_step["response_text"][:200].replace("\n", " ")
+                    print(f"         Response: \"{resp_preview}\"")
+            print()
     else:
         print("[*] Skipping multi-turn tests (request is not JSON).")
 

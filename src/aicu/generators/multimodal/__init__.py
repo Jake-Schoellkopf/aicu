@@ -16,8 +16,8 @@ INJECTION_COMMANDS = [
 ]
 
 EXFIL_URLS = [
-    "https://aicu.requestcatcher.com/exfil?data=",
-    "https://aicu.requestcatcher.com/creds?leak=",
+    "https://l5r4kx1f886qw8w6tdxe01jpfgl792xr.oastify.com/exfil?data=",
+    "https://l5r4kx1f886qw8w6tdxe01jpfgl792xr.oastify.com/creds?leak=",
     "http://169.254.169.254/latest/meta-data/iam/security-credentials/",
 ]
 
