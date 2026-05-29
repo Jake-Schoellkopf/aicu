@@ -10,7 +10,7 @@
   <img src="demo.svg" alt="AICU demo" width="800">
 </p>
 
-AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts — no API keys or model access required.
+AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts.
 
 ## Quick Start (2 minutes)
 
@@ -19,11 +19,35 @@ AICU replays captured HTTP requests with adversarial payloads and evaluates whet
 git clone https://github.com/Jake-Schoellkopf/aicu.git && cd aicu
 pip install -e .
 
-# Start the built-in vulnerable demo target
-python demo_server.py &
+# Option 1: Scan with an API key (OpenAI, Azure, Ollama — no Burp needed)
+aicu scan --api-key sk-your-key --model gpt-4o-mini
 
-# Run a full scan
+# Option 2: Scan via captured Burp request (Claude, custom apps)
 aicu scan --request examples/demo_request.txt
+
+# Option 3: Test against the built-in vulnerable demo
+python demo_server.py &
+aicu scan --request examples/demo_request.txt
+```
+
+### API Key Mode (recommended for OpenAI/Azure/Ollama)
+
+```bash
+# OpenAI
+aicu scan --api-key sk-... --model gpt-4o-mini
+
+# Azure OpenAI
+aicu scan --api-key your-azure-key --model gpt-4o --base-url https://your-resource.openai.azure.com
+
+# Local Ollama (no key needed)
+aicu scan --api-key dummy --model llama3.2 --base-url http://localhost:11434
+```
+
+### Burp Proxy Mode (for web apps like Claude, custom chatbots)
+
+```bash
+# Capture a request in Burp, save to file, scan
+aicu scan --request captured_request.txt
 ```
 
 ## What It Finds
