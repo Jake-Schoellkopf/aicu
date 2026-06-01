@@ -34,14 +34,34 @@ aicu scan --request examples/demo_request.txt
 
 ```bash
 # OpenAI
-aicu scan --api-key sk-... --model gpt-4o-mini
+aicu scan --api-key sk-... --model gpt-4.1-mini
+
+# Anthropic Claude
+aicu scan --api-key sk-ant-... --model claude-haiku-4-5-20251001
 
 # Azure OpenAI
 aicu scan --api-key your-azure-key --model gpt-4o --base-url https://your-resource.openai.azure.com
 
 # Local Ollama (no key needed)
 aicu scan --api-key dummy --model llama3.2 --base-url http://localhost:11434
+
+# Or set OPENAI_API_KEY env var and just run:
+aicu scan --model gpt-4.1-mini
 ```
+
+### Canary Mode (proves extraction with undeniable evidence)
+
+```bash
+# Plant a secret in the system prompt, check if any payload extracts it
+aicu scan --model gpt-4.1-mini --canary "AICU_SECRET_12345"
+
+# Combine with a custom system prompt to simulate a real app
+aicu scan --model gpt-4.1-mini \
+  --canary "sk-prod-secret-key-abc123" \
+  --system-prompt "You are FinanceBot for Acme Corp. Help users with account queries."
+```
+
+If any payload makes the model output the canary value, it's an instant **CONFIRMED** finding.
 
 ### Burp Proxy Mode (for web apps like Claude, custom chatbots)
 
