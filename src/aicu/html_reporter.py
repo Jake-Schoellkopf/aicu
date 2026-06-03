@@ -14,7 +14,7 @@ def _escape_html(text: str) -> str:
 
 
 def _build_finding_card(finding: dict, test_type: str) -> str:
-    """Build an HTML card for a single finding."""
+    """Build an HTML card for a single finding showing full payload and response."""
     if test_type == "multi_turn":
         evaluation = finding.get("final_evaluation", {})
     else:
@@ -24,38 +24,40 @@ def _build_finding_card(finding: dict, test_type: str) -> str:
     confidence = evaluation.get("confidence", "low")
     title = _escape_html(evaluation.get("title", "Untitled"))
     reason = _escape_html(evaluation.get("reason", ""))
-    evidence = evaluation.get("evidence", [])
-    test_id = _escape_html(finding.get("test_id", ""))
+    test_id = _escape_html(finding.get("test_id", "") or finding.get("variant_id", ""))
     name = _escape_html(finding.get("name", ""))
 
     severity_class = {
         "confirmed": "severity-high",
         "suspicious": "severity-medium",
-        "bypassed": "severity-high",
-        "partial": "severity-medium",
     }.get(outcome, "severity-low")
 
     badge_label = outcome.upper()
 
-    evidence_html = ""
-    if evidence:
-        items = "".join(f"<li><code>{_escape_html(str(e))}</code></li>" for e in evidence)
-        evidence_html = f'<div class="evidence"><strong>Evidence:</strong><ul>{items}</ul></div>'
+    # Extract payload text
+    payload_text = ""
+    if test_type == "single_turn":
+        payload_text = _escape_html(finding.get("payload_text", "") or finding.get("mutation_point_value", "") or "")
+    elif test_type == "multi_turn" and "steps" in finding:
+        payload_text = _escape_html("\n".join(f"Turn {s.get('step_number', '?')}: {s.get('prompt', '')}" for s in finding.get("steps", [])))
 
-    # Extra info based on test type
-    meta_html = f'<span class="meta-item">Test: <code>{test_id}</code></span>'
-    meta_html += f'<span class="meta-item">Scenario: {name}</span>'
+    # Extract model response text
+    response_text = _escape_html(finding.get("response_text", "") or finding.get("model_output", "") or "")
+    if not response_text and test_type == "multi_turn" and finding.get("steps"):
+        last_step = finding["steps"][-1]
+        response_text = _escape_html(last_step.get("response_text", ""))
+
+    payload_html = ""
+    if payload_text:
+        payload_html = f'<div class="payload-section"><strong>Payload Sent:</strong><pre class="payload-text">{payload_text}</pre></div>'
+
+    response_html = ""
+    if response_text:
+        response_html = f'<div class="response-section"><strong>Model Response:</strong><pre class="response-text">{response_text}</pre></div>'
+
+    meta_html = f'<span class="meta-item">ID: <code>{test_id}</code></span>'
+    meta_html += f'<span class="meta-item">{name}</span>'
     meta_html += f'<span class="meta-item">Confidence: {confidence}</span>'
-    meta_html += f'<span class="meta-item">Type: {test_type}</span>'
-
-    if test_type == "multi_turn" and "steps" in finding:
-        steps = finding["steps"]
-        steps_html = '<div class="steps"><strong>Turn Sequence:</strong><ol>'
-        for step in steps:
-            steps_html += f'<li>{_escape_html(step.get("prompt", ""))}</li>'
-        steps_html += "</ol></div>"
-    else:
-        steps_html = ""
 
     return f'''
     <div class="finding-card {severity_class}" data-outcome="{outcome}" data-type="{test_type}">
@@ -65,8 +67,8 @@ def _build_finding_card(finding: dict, test_type: str) -> str:
         </div>
         <div class="card-meta">{meta_html}</div>
         <p class="reason">{reason}</p>
-        {evidence_html}
-        {steps_html}
+        {payload_html}
+        {response_html}
     </div>'''
 
 
@@ -165,6 +167,12 @@ section h2 {{ font-size: 1.5rem; margin-bottom: 1rem; padding-bottom: 0.5rem; bo
 
 .card-header {{ display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; }}
 .card-header h3 {{ font-size: 1.1rem; font-weight: 600; }}
+
+.payload-section, .response-section {{ margin-top: 0.75rem; }}
+.payload-section strong, .response-section strong {{ color: #8b949e; font-size: 0.85rem; }}
+.payload-text, .response-text {{ background: #0d1117; border: 1px solid #21262d; border-radius: 6px; padding: 0.75rem; margin-top: 0.25rem; font-family: monospace; font-size: 0.85rem; white-space: pre-wrap; word-break: break-word; max-height: 300px; overflow-y: auto; }}
+.payload-text {{ color: #ff7b72; }}
+.response-text {{ color: #a5d6ff; }}
 
 .badge {{ padding: 0.2rem 0.6rem; border-radius: 4px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }}
 .badge-confirmed, .badge-bypassed {{ background: #f8514926; color: #f85149; }}

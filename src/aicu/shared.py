@@ -41,6 +41,21 @@ def rebuild_json_request(request: ParsedRequest) -> None:
 
 def serialize_mutation_result(mutation, response, diagnostics, evaluation) -> dict:
     """Serialize a single-turn mutation result to a JSON-safe dict."""
+    from .evaluator import extract_model_output
+    from .mutations import get_value_at_path
+
+    # Extract the actual payload text that was sent
+    payload_text = ""
+    if mutation.mutated_request.json_body:
+        val = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
+        if isinstance(val, str):
+            payload_text = val
+
+    # Extract the model's actual text response (not raw JSON)
+    response_text = ""
+    if response.text and not response.error:
+        response_text = extract_model_output(response.text)
+
     return {
         "test_type": "single_turn",
         "test_id": mutation.test_id,
@@ -50,6 +65,8 @@ def serialize_mutation_result(mutation, response, diagnostics, evaluation) -> di
         "transformation_type": mutation.transformation_type,
         "mutation_point": mutation.mutation_point,
         "mode": mutation.mode,
+        "payload_text": payload_text,
+        "response_text": response_text,
         "response": {
             "status_code": response.status_code,
             "elapsed_ms": response.elapsed_ms,
