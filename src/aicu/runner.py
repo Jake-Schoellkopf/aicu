@@ -5,7 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .baseline import create_run_directory, generate_run_id
-from .evaluator import evaluate_response
+from .evaluator import evaluate_response, extract_model_output
 from .evidence import (
     save_all_evidence,
     save_all_multi_turn_evidence,
@@ -90,7 +90,8 @@ def run_scan(request_file: str, canary: str | None = None) -> Path:
                     preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
                     print(f"    Payload:  \"{preview}\"")
             if response.text and not response.error:
-                resp_preview = response.text[:200].replace("\n", " ")
+                model_output = extract_model_output(response.text)
+                resp_preview = model_output[:200].replace("\n", " ")
                 print(f"    Response: \"{resp_preview}\"")
             if evaluation.reason and outcome != "none":
                 print(f"    Reason:   {evaluation.reason[:120]}")
