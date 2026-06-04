@@ -6,6 +6,7 @@ from pathlib import Path
 
 from .baseline import create_run_directory, generate_run_id
 from .evaluator import evaluate_response, extract_model_output
+from .llm_judge import judge_evaluation
 from .evidence import (
     save_all_evidence,
     save_all_multi_turn_evidence,
@@ -24,7 +25,7 @@ from .reporter import generate_markdown_report
 from .shared import serialize_mutation_result, serialize_multi_turn_result
 
 
-def run_scan(request_file: str, canary: str | None = None) -> Path:
+def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = False, judge_model: str = "gpt-4o-mini") -> Path:
     print(f"[+] Loading request: {request_file}")
 
     parsed = parse_raw_request_file(request_file)
@@ -70,6 +71,18 @@ def run_scan(request_file: str, canary: str | None = None) -> Path:
                     evidence=[f"Canary value '{canary}' present in response"],
                 )
 
+            # LLM Judge — second-pass on suspicious findings
+            if llm_judge and evaluation.outcome == "suspicious":
+                from .mutations import get_value_at_path
+                _payload = ""
+                if mutation.mutated_request.json_body:
+                    _val = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
+                    if isinstance(_val, str):
+                        _payload = _val
+                _resp_text = extract_model_output(response.text) if response.text else ""
+                _base_text = extract_model_output(baseline_response.text) if baseline_response.text else ""
+                evaluation = judge_evaluation(evaluation, _payload, _resp_text, _base_text, model=judge_model)
+
             result = serialize_mutation_result(
                 mutation,
                 response,
@@ -105,6 +118,14 @@ def run_scan(request_file: str, canary: str | None = None) -> Path:
         multi_turn_runs = run_all_multi_turn_tests(parsed, baseline_response)
         print(f"[+] Total multi-turn sequences: {len(multi_turn_runs)}")
         for result in multi_turn_runs:
+            # LLM Judge for multi-turn suspicious findings
+            if llm_judge and result.final_evaluation and result.final_evaluation.outcome == "suspicious":
+                last_step = result.steps[-1] if result.steps else None
+                _resp_text = extract_model_output(last_step.response.text) if last_step and last_step.response.text else ""
+                _base_text = extract_model_output(baseline_response.text) if baseline_response.text else ""
+                _payload = last_step.prompt if last_step else ""
+                result.final_evaluation = judge_evaluation(result.final_evaluation, _payload, _resp_text, _base_text, model=judge_model)
+
             serialized = serialize_multi_turn_result(result)
             multi_turn_results.append(serialized)
             outcome = serialized["final_evaluation"]["outcome"]
