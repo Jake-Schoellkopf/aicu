@@ -206,6 +206,67 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
             print("    [CLEAN] TAP did not achieve objective.")
         print()
 
+    # PAIR (Prompt Automatic Iterative Refinement)
+    if parsed.is_json() and llm_judge:
+        from .pair import run_pair
+        print("[+] Running PAIR (Prompt Automatic Iterative Refinement)...")
+        pair_result = run_pair(base_request=parsed, baseline_response=baseline_response, max_iterations=20, model=judge_model)
+        print(f"    [PAIR] Iterations: {pair_result.iterations}, Queries: {pair_result.total_queries}, Best score: {pair_result.best_score}/10")
+        if pair_result.evaluation:
+            tag = "CONFIRMED" if pair_result.evaluation.outcome == "confirmed" else "SUSPICIOUS"
+            print(f"    [{tag}] {pair_result.evaluation.title}")
+            if pair_result.winning_prompt:
+                print(f"    Winning prompt: \"{pair_result.winning_prompt[:100]}\"")
+            tap_results.append({
+                "test_type": "pair",
+                "test_id": "PAIR-001",
+                "name": "pair_iterative_refinement",
+                "best_score": pair_result.best_score,
+                "total_queries": pair_result.total_queries,
+                "iterations": pair_result.iterations,
+                "successful_prompt": pair_result.winning_prompt,
+                "evaluation": {
+                    "outcome": pair_result.evaluation.outcome,
+                    "title": pair_result.evaluation.title,
+                    "confidence": pair_result.evaluation.confidence,
+                    "reason": pair_result.evaluation.reason,
+                    "evidence": pair_result.evaluation.evidence,
+                },
+            })
+        else:
+            print("    [CLEAN] PAIR did not achieve objective.")
+        print()
+
+    # Crescendo (progressive multi-turn escalation)
+    if parsed.is_json() and llm_judge:
+        from .crescendo import run_crescendo
+        print("[+] Running Crescendo (progressive multi-turn escalation)...")
+        crescendo_result = run_crescendo(base_request=parsed, baseline_response=baseline_response, max_turns=12, model=judge_model)
+        print(f"    [CRESCENDO] Turns: {crescendo_result.turns_used}, Queries: {crescendo_result.total_queries}, Success: {crescendo_result.success}")
+        if crescendo_result.evaluation:
+            tag = "CONFIRMED" if crescendo_result.evaluation.outcome == "confirmed" else "SUSPICIOUS"
+            print(f"    [{tag}] {crescendo_result.evaluation.title}")
+            if crescendo_result.final_response:
+                print(f"    Response: \"{crescendo_result.final_response[:200]}\"")
+            tap_results.append({
+                "test_type": "crescendo",
+                "test_id": "CRESC-001",
+                "name": "crescendo_escalation",
+                "turns_used": crescendo_result.turns_used,
+                "total_queries": crescendo_result.total_queries,
+                "success": crescendo_result.success,
+                "evaluation": {
+                    "outcome": crescendo_result.evaluation.outcome,
+                    "title": crescendo_result.evaluation.title,
+                    "confidence": crescendo_result.evaluation.confidence,
+                    "reason": crescendo_result.evaluation.reason,
+                    "evidence": crescendo_result.evaluation.evidence,
+                },
+            })
+        else:
+            print("    [CLEAN] Crescendo did not achieve objective.")
+        print()
+
     indirect_results: list[dict] = []
     is_multipart = bool(
         parsed.content_type and "multipart/form-data" in parsed.content_type.lower()
