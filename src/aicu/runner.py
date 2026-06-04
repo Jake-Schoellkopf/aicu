@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .baseline import create_run_directory, generate_run_id
+from .dynamic_payloads import generate_dynamic_payloads
 from .evaluator import evaluate_response, extract_model_output
 from .llm_judge import judge_evaluation
 from .evidence import (
@@ -51,6 +52,32 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     if parsed.is_json():
         print("[+] Generating single-turn mutations...")
         mutations = generate_mutations(parsed)
+
+        # Dynamic payload generation if LLM judge is enabled
+        if llm_judge:
+            print("[+] Generating dynamic LLM-crafted payloads...")
+            baseline_text = extract_model_output(baseline_response.text) if baseline_response.text else ""
+            dynamic_defs = generate_dynamic_payloads(baseline_text, count=15, model=judge_model)
+            if dynamic_defs:
+                from .mutations import mutate_request, MutationResult
+                for pdef in dynamic_defs:
+                    for point in parsed.mutation_points:
+                        try:
+                            mutated_req = mutate_request(parsed, pdef["content"], point, "replace")
+                            mutations.append(MutationResult(
+                                test_id=pdef["id"],
+                                name=pdef["name"],
+                                family=pdef["family"],
+                                variant_id=pdef["variant_id"],
+                                transformation_type=pdef["transformation_type"],
+                                mutation_point=point,
+                                mode="replace",
+                                mutated_request=mutated_req,
+                            ))
+                        except Exception:
+                            continue
+                print(f"[+] Dynamic payloads added: {len(dynamic_defs)}")
+
         print(f"[+] Total single-turn mutations: {len(mutations)}")
 
         for i, mutation in enumerate(mutations, start=1):
@@ -144,6 +171,41 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     else:
         print("[*] Skipping multi-turn tests (request is not JSON).")
 
+    # TAP (Tree of Attacks with Pruning) — only when LLM judge is enabled
+    tap_results: list[dict] = []
+    if parsed.is_json() and llm_judge:
+        from .tap import run_tap
+        print("[+] Running TAP (Tree of Attacks with Pruning)...")
+        tap_result = run_tap(base_request=parsed, baseline_response=baseline_response, model=judge_model)
+        print(f"    [TAP] Depth: {tap_result.max_depth_reached}, Queries: {tap_result.total_queries}, Best score: {tap_result.best_score}/10")
+        if tap_result.evaluation:
+            tag = "CONFIRMED" if tap_result.evaluation.outcome == "confirmed" else "SUSPICIOUS"
+            print(f"    [{tag}] {tap_result.evaluation.title}")
+            if tap_result.successful_prompt:
+                print(f"    Winning prompt: \"{tap_result.successful_prompt[:100]}\"")
+            if tap_result.successful_response:
+                print(f"    Response: \"{tap_result.successful_response[:200]}\"")
+            tap_results.append({
+                "test_type": "tap",
+                "test_id": "TAP-001",
+                "name": "tree_of_attacks",
+                "objective": tap_result.objective,
+                "best_score": tap_result.best_score,
+                "total_queries": tap_result.total_queries,
+                "max_depth_reached": tap_result.max_depth_reached,
+                "successful_prompt": tap_result.successful_prompt,
+                "evaluation": {
+                    "outcome": tap_result.evaluation.outcome,
+                    "title": tap_result.evaluation.title,
+                    "confidence": tap_result.evaluation.confidence,
+                    "reason": tap_result.evaluation.reason,
+                    "evidence": tap_result.evaluation.evidence,
+                },
+            })
+        else:
+            print("    [CLEAN] TAP did not achieve objective.")
+        print()
+
     indirect_results: list[dict] = []
     is_multipart = bool(
         parsed.content_type and "multipart/form-data" in parsed.content_type.lower()
@@ -185,7 +247,7 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     print(f"[+] Reports saved to: {run_path}")
 
     # Print summary
-    all_results = single_turn_results + multi_turn_results + indirect_results
+    all_results = single_turn_results + multi_turn_results + indirect_results + tap_results
     confirmed = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "confirmed")
     suspicious = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "suspicious")
     clean = len(all_results) - confirmed - suspicious
