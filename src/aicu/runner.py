@@ -135,6 +135,11 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
                 print(f"    Response: \"{resp_preview}\"")
             if evaluation.reason and outcome != "none":
                 print(f"    Reason:   {evaluation.reason[:120]}")
+            # Show leaked secrets/canary for confirmed findings
+            if outcome == "confirmed" and response.text:
+                _model_out = extract_model_output(response.text)
+                if canary and canary in _model_out:
+                    print(f"    \033[91m*** CANARY LEAKED: \"{canary}\" found in response ***\033[0m")
             print()
     else:
         print("[*] Skipping single-turn tests (request is not JSON).")
@@ -309,18 +314,43 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
 
     # Print summary
     all_results = single_turn_results + multi_turn_results + indirect_results + tap_results
-    confirmed = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "confirmed")
-    suspicious = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "suspicious")
-    clean = len(all_results) - confirmed - suspicious
+    confirmed_results = [r for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "confirmed"]
+    suspicious_count = sum(1 for r in all_results if r.get("evaluation", r.get("final_evaluation", {})).get("outcome") == "suspicious")
+    clean = len(all_results) - len(confirmed_results) - suspicious_count
     print()
     print("=" * 60)
     print("  SCAN COMPLETE")
     print("=" * 60)
     print()
-    print(f"  Confirmed:  {confirmed}")
-    print(f"  Suspicious: {suspicious}")
+    print(f"  Confirmed:  {len(confirmed_results)}")
+    print(f"  Suspicious: {suspicious_count}")
     print(f"  Clean:      {clean}")
     print()
+
+    # Real findings breakdown — show what was actually leaked
+    if confirmed_results:
+        print("-" * 60)
+        print("  CONFIRMED FINDINGS DETAIL")
+        print("-" * 60)
+        print()
+        for r in confirmed_results:
+            eval_data = r.get("evaluation", r.get("final_evaluation", {}))
+            name = r.get("name", r.get("test_id", "unknown"))
+            variant = r.get("variant_id", "")
+            technique = r.get("transformation_type", r.get("test_type", ""))
+            resp_text = r.get("response_text", "")
+            if not resp_text and r.get("response", {}).get("body_preview"):
+                resp_text = r["response"]["body_preview"]
+
+            print(f"  [{variant}] {name}")
+            print(f"    Technique: {technique}")
+            print(f"    Title:     {eval_data.get('title', '')}")
+            if canary and canary.lower() in resp_text.lower():
+                print(f"    \033[91m*** CANARY \"{canary}\" EXTRACTED ***\033[0m")
+            if eval_data.get("reason"):
+                print(f"    Reason:    {eval_data['reason'][:150]}")
+            print()
+
     print(f"  Evidence saved: {run_path / 'evidence'}")
     print(f"  HTML report:    {run_path / 'report.html'}")
     print(f"  JSON results:   {single_turn_file}")
