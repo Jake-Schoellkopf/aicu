@@ -133,12 +133,32 @@ aicu multimodal --output-dir ./payloads_out
 
 ## How It Works
 
-1. **Capture** a request to your LLM endpoint (Burp Suite, browser dev tools, curl)
-2. **Save** it as a raw HTTP file
-3. **Run** `aicu scan --request req.txt`
-4. **Read** the HTML/JSON/Markdown report with findings and evidence
+1. **Capture** a request to your LLM endpoint (Burp Suite, browser dev tools, curl) — or just provide an API key
+2. **Run** `aicu scan --api-key sk-... --llm-judge` for the full attack suite
+3. **Read** the HTML/JSON/Markdown report with findings and evidence
 
-AICU establishes a baseline response, then fires YAML-driven payloads (single-turn, multi-turn, file-based) and uses a strict multi-layer evaluator to classify results with minimal false positives.
+### Attack Pipeline
+
+AICU fires multiple attack stages, each using different optimization strategies:
+
+| Stage | Technique | Based On |
+|-------|-----------|----------|
+| Static payloads (86) | Task framing, logic exploits, role assumption, linguistic transforms | Guardrail-evasive handcrafted prompts |
+| Trigger-optimized (25) | Format coercion, completion steering, context boundary, gradient triggers | Black Hat USA adversarial optimization (X_before ⊕ X_trigger₁ ⊕ X_payload ⊕ X_trigger₂ ⊕ X_after) |
+| Encoding attacks (24) | Base64, Unicode, ROT13, homoglyphs, multilingual, escape sequences | Token-level confusion to bypass classifier attention |
+| Intruder payloads (135) | DevOps framing, IaC templates, format coercion, context probing | Burp Intruder-style high-volume fuzzing |
+| Dynamic generation (15) | LLM generates novel payloads tailored to target's baseline | Context-aware attack synthesis |
+| TAP | Tree of Attacks with Pruning — 4 depths, 4 branches | Mehrotra et al. (2023) |
+| PAIR | Prompt Automatic Iterative Refinement — 20 iterations | Chao et al. (2310.08419) |
+| Crescendo | Progressive 12-turn trust escalation | Microsoft Research (2404.01833) |
+| Multi-turn (20) | Trust ratcheting, version control framing, cognitive overload | Adaptive multi-turn sequences |
+
+### Evaluation
+
+Results are evaluated by a multi-layer system:
+- **5 statistical signals**: entropy divergence, TF-IDF anomaly, fingerprint divergence, n-gram novelty, refusal inversion
+- **LLM Judge** (optional): bug-bounty severity bar — only confirms findings with real exploit value
+- **Canary detection**: ground-truth proof via planted secrets
 
 ## Usage
 
