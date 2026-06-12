@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+runs/
+generated_files/
+attack_files/
+.git/
+.github/
+demo.cast
+demo.svg
+demo.tape

@@ -329,6 +329,23 @@ pip install -e .            # editable install from source
 pip install -e ".[dev]"     # with test/lint tools
 ```
 
+### Docker
+
+```bash
+# Run directly (no install needed)
+docker run --rm -e OPENAI_API_KEY=sk-... ghcr.io/jake-schoellkopf/aicu scan --llm-judge
+
+# With live dashboard (expose port 4171)
+docker run --rm -p 4171:4171 -e OPENAI_API_KEY=sk-... ghcr.io/jake-schoellkopf/aicu scan --llm-judge --live
+
+# With a captured request file
+docker run --rm -v ./req.txt:/app/req.txt ghcr.io/jake-schoellkopf/aicu scan --request /app/req.txt
+
+# Build locally
+docker build -t aicu .
+docker run --rm aicu scan --help
+```
+
 ## Run Tests
 
 ```bash
