@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aicu-scanner"
-version = "0.9.1"
+version = "1.0.0"
 description = "LLM application security testing framework — prompt injection, multimodal attacks, safety bypass, and indirect injection scanner"
 readme = "README.md"
 license = "MIT"

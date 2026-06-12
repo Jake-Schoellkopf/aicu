@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .baseline import run_baseline
 from .evaluator import evaluate_response
+from .agent_tests import run_all_agent_tests, serialize_agent_result
 from .generators.multimodal_scanner import generate_all_payloads, save_payloads, run_multimodal_scan
 from .indirect_injection import run_all_indirect_file_tests, serialize_indirect_result
 from .multi_turn import run_all_multi_turn_tests
@@ -216,6 +217,23 @@ def command_indirect(args: argparse.Namespace) -> None:
     print(json.dumps(serialized, indent=2))
 
 
+def command_agent(args: argparse.Namespace) -> None:
+    """Run agent/RAG-specific security tests."""
+    parsed = parse_raw_request_file(args.request)
+    parsed = _apply_profile(parsed, args)
+
+    if not parsed.is_json():
+        raise ValueError("agent command requires a JSON request.")
+
+    baseline_response, _ = replay_request(parsed)
+
+    categories = [args.category] if args.category else None
+    results = run_all_agent_tests(parsed, baseline_response, categories=categories)
+    serialized = [serialize_agent_result(r) for r in results]
+
+    print(json.dumps(serialized, indent=2))
+
+
 def command_multimodal(args: argparse.Namespace) -> None:
     """Generate and optionally deliver multimodal adversarial payloads."""
     categories = [args.category] if args.category else None
@@ -383,6 +401,21 @@ def build_parser() -> argparse.ArgumentParser:
         help="Directory for generated test files",
     )
     indirect_parser.set_defaults(func=command_indirect)
+
+    # agent
+    agent_parser = subparsers.add_parser(
+        "agent",
+        help="Run agent/RAG-specific security tests (tool poisoning, RAG poisoning, schema extraction)",
+    )
+    agent_parser.add_argument("--request", required=True, help="Path to raw HTTP request file")
+    agent_parser.add_argument(
+        "--category",
+        choices=["schema_extraction", "unauthorized_tool", "rag_poisoning", "tool_poisoning", "context_overflow"],
+        default=None,
+        help="Run only a specific test category (default: all)",
+    )
+    _add_common_args(agent_parser)
+    agent_parser.set_defaults(func=command_agent)
 
     # multimodal
     multimodal_parser = subparsers.add_parser(
