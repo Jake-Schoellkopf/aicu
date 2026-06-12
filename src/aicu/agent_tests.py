@@ -201,6 +201,8 @@ def run_agent_test(
     base_request: ParsedRequest,
     baseline_response: ReplayResponse,
     test_case: AgentTestCase,
+    llm_judge: bool = False,
+    judge_model: str = "gpt-4o-mini",
 ) -> AgentTestResult:
     """Run a single agent/RAG test case."""
     if not base_request.mutation_points:
@@ -218,6 +220,13 @@ def run_agent_test(
         diagnostics=diagnostics,
     )
 
+    # LLM Judge — apply bug-bounty severity bar on suspicious findings
+    if llm_judge and evaluation.outcome == "suspicious":
+        from .llm_judge import judge_evaluation
+        resp_text = extract_model_output(response.text) if response.text else ""
+        base_text = extract_model_output(baseline_response.text) if baseline_response.text else ""
+        evaluation = judge_evaluation(evaluation, test_case.payload, resp_text, base_text, model=judge_model)
+
     return AgentTestResult(
         test_id=test_case.test_id,
         name=test_case.name,
@@ -232,6 +241,8 @@ def run_all_agent_tests(
     base_request: ParsedRequest,
     baseline_response: ReplayResponse,
     categories: list[str] | None = None,
+    llm_judge: bool = False,
+    judge_model: str = "gpt-4o-mini",
 ) -> list[AgentTestResult]:
     """Run all agent/RAG security tests, optionally filtered by category."""
     tests = AGENT_TESTS
@@ -241,7 +252,7 @@ def run_all_agent_tests(
     results = []
     for test_case in tests:
         print(f"[+] [AGENT] {test_case.category}/{test_case.name}")
-        results.append(run_agent_test(base_request, baseline_response, test_case))
+        results.append(run_agent_test(base_request, baseline_response, test_case, llm_judge=llm_judge, judge_model=judge_model))
 
     return results
 

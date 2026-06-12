@@ -228,7 +228,9 @@ def command_agent(args: argparse.Namespace) -> None:
     baseline_response, _ = replay_request(parsed)
 
     categories = [args.category] if args.category else None
-    results = run_all_agent_tests(parsed, baseline_response, categories=categories)
+    llm_judge = getattr(args, "llm_judge", False)
+    judge_model = getattr(args, "judge_model", "gpt-4o-mini")
+    results = run_all_agent_tests(parsed, baseline_response, categories=categories, llm_judge=llm_judge, judge_model=judge_model)
     serialized = [serialize_agent_result(r) for r in results]
 
     print(json.dumps(serialized, indent=2))
@@ -414,6 +416,8 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Run only a specific test category (default: all)",
     )
+    agent_parser.add_argument("--llm-judge", action="store_true", default=False, help="Use LLM judge with bug-bounty severity bar")
+    agent_parser.add_argument("--judge-model", default="gpt-4o-mini", help="Model for LLM judge (default: gpt-4o-mini)")
     _add_common_args(agent_parser)
     agent_parser.set_defaults(func=command_agent)
 
