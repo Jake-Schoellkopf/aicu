@@ -332,14 +332,27 @@ pip install -e ".[dev]"     # with test/lint tools
 ### Docker
 
 ```bash
-# Run directly (no install needed)
-docker run --rm -e OPENAI_API_KEY=sk-... ghcr.io/jake-schoellkopf/aicu scan --llm-judge
+# Pull the image
+docker pull ghcr.io/jake-schoellkopf/aicu:latest
 
-# With live dashboard (expose port 4171)
-docker run --rm -p 4171:4171 -e OPENAI_API_KEY=sk-... ghcr.io/jake-schoellkopf/aicu scan --llm-judge --live
+# Scan with API key (simplest)
+docker run --rm ghcr.io/jake-schoellkopf/aicu scan \
+  --api-key sk-your-key \
+  --system-prompt "Your test prompt here" \
+  --canary "SECRET_VALUE" \
+  --llm-judge
 
-# With a captured request file
-docker run --rm -v ./req.txt:/app/req.txt ghcr.io/jake-schoellkopf/aicu scan --request /app/req.txt
+# With live dashboard (open http://localhost:4171 in browser)
+docker run --rm -p 4171:4171 ghcr.io/jake-schoellkopf/aicu scan \
+  --api-key sk-your-key --llm-judge --live
+
+# With a captured request file from your host
+docker run --rm -v ./req.txt:/app/req.txt ghcr.io/jake-schoellkopf/aicu \
+  scan --request /app/req.txt
+
+# Agent/RAG testing
+docker run --rm -v ./req.txt:/app/req.txt ghcr.io/jake-schoellkopf/aicu \
+  agent --request /app/req.txt --category schema_extraction
 
 # Build locally
 docker build -t aicu .
