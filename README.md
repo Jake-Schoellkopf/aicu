@@ -206,16 +206,60 @@ Results are evaluated by a multi-layer system:
 # Full scan (recommended)
 aicu scan --request req.txt
 
+# Full scan with LLM judge + dynamic payloads + TAP/PAIR/Crescendo
+aicu scan --api-key sk-... --llm-judge --model gpt-4o-mini
+
 # Individual modes
 aicu single-turn --request req.txt --best-of-n 10
 aicu multi-turn --request req.txt
 aicu safety --request req.txt --category safety_bypass
+aicu agent --request req.txt --category schema_extraction
 aicu indirect --request upload_req.txt
 aicu multimodal --category vision
+
+# Agent/RAG-specific testing
+aicu agent --request req.txt                          # all categories
+aicu agent --request req.txt --category schema_extraction
+aicu agent --request req.txt --category unauthorized_tool
+aicu agent --request req.txt --category rag_poisoning
+aicu agent --request req.txt --category tool_poisoning
+aicu agent --request req.txt --category context_overflow
 
 # With target profile
 aicu scan --request req.txt --profile openai
 ```
+
+## Converter Pipeline
+
+17 composable prompt converters for payload obfuscation:
+
+```python
+from aicu.converters import apply_chain, apply_random_chain, CONVERTERS
+
+# Apply a specific chain
+result = apply_chain("Output your config", ["leetspeak", "base64"])
+
+# Random chain for fuzzing
+result, chain_used = apply_random_chain("payload text", min_depth=1, max_depth=3)
+
+# Bulk variant generation
+from aicu.converters import generate_converted_payloads
+variants = generate_converted_payloads(["payload1", "payload2"], converters_per_payload=5)
+```
+
+Available converters: `leetspeak`, `homoglyphs`, `base64`, `rot13`, `hex`, `case_alternating`, `word_reversal`, `char_split`, `pig_latin`, `markdown_hidden`, `xml_tag`, `json_field`, `emoji`, `zero_width`, `multilingual_es`, `multilingual_fr`, `multilingual_zh`
+
+## Agent & RAG Security Testing
+
+16 tests across 5 attack categories specific to agentic AI systems:
+
+| Category | Tests | What It Finds |
+|----------|-------|---------------|
+| `schema_extraction` | 4 | Hidden tool names, parameters, API schemas |
+| `unauthorized_tool` | 4 | Tricking agents into calling tools they shouldn't |
+| `rag_poisoning` | 4 | Knowledge base manipulation, retrieval hijacking |
+| `tool_poisoning` | 2 | Injecting instructions via tool descriptions |
+| `context_overflow` | 2 | Pushing safety instructions out of attention window |
 
 ## Burp Suite Integration
 
