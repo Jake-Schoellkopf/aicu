@@ -209,6 +209,9 @@ aicu scan --request req.txt
 # Full scan with LLM judge + dynamic payloads + TAP/PAIR/Crescendo
 aicu scan --api-key sk-... --llm-judge --model gpt-4o-mini
 
+# Full scan with real-time web dashboard
+aicu scan --api-key sk-... --llm-judge --live
+
 # Individual modes
 aicu single-turn --request req.txt --best-of-n 10
 aicu multi-turn --request req.txt
