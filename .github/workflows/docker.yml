@@ -27,5 +27,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
-            ghcr.io/${{ github.repository }}:latest
+            ghcr.io/jake-schoellkopf/aicu:${{ github.ref_name }}
+            ghcr.io/jake-schoellkopf/aicu:latest
