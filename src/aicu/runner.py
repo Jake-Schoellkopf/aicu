@@ -7,6 +7,7 @@ from pathlib import Path
 from .baseline import create_run_directory, generate_run_id
 from .dynamic_payloads import generate_dynamic_payloads
 from .evaluator import evaluate_response, extract_model_output
+from .live_dashboard import emit_event, start_dashboard, stop_dashboard
 from .llm_judge import judge_evaluation
 from .evidence import (
     save_all_evidence,
@@ -26,7 +27,12 @@ from .reporter import generate_markdown_report
 from .shared import serialize_mutation_result, serialize_multi_turn_result
 
 
-def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = False, judge_model: str = "gpt-4o-mini") -> Path:
+def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = False, judge_model: str = "gpt-4o-mini", live: bool = False) -> Path:
+    dashboard_server = None
+    if live:
+        print("[+] Starting live dashboard at http://localhost:4171")
+        dashboard_server = start_dashboard()
+
     print(f"[+] Loading request: {request_file}")
 
     parsed = parse_raw_request_file(request_file)
@@ -79,6 +85,8 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
                 print(f"[+] Dynamic payloads added: {len(dynamic_defs)}")
 
         print(f"[+] Total single-turn mutations: {len(mutations)}")
+        if live:
+            emit_event({"type": "scan_start", "total_mutations": len(mutations)})
 
         for i, mutation in enumerate(mutations, start=1):
             response, diagnostics = replay_request(mutation.mutated_request)
@@ -140,6 +148,29 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
                 _model_out = extract_model_output(response.text)
                 if canary and canary in _model_out:
                     print(f"    \033[91m*** CANARY LEAKED: \"{canary}\" found in response ***\033[0m")
+            # Emit live dashboard event
+            if live:
+                from .mutations import get_value_at_path
+                _p = ""
+                if mutation.mutated_request.json_body:
+                    _v = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
+                    if isinstance(_v, str):
+                        _p = _v
+                _r = extract_model_output(response.text) if response.text and not response.error else ""
+                emit_event({
+                    "type": "result",
+                    "index": i,
+                    "variant_id": mutation.variant_id,
+                    "name": mutation.name,
+                    "transformation_type": mutation.transformation_type,
+                    "outcome": outcome,
+                    "confidence": evaluation.confidence,
+                    "payload": _p,
+                    "payload_preview": _p[:120],
+                    "response": _r,
+                    "reason": evaluation.reason or "",
+                    "canary_leaked": bool(canary and response.text and canary in extract_model_output(response.text)),
+                })
             print()
     else:
         print("[*] Skipping single-turn tests (request is not JSON).")
@@ -147,6 +178,8 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     multi_turn_results: list[dict] = []
     if parsed.is_json():
         print("[+] Running multi-turn sequences...")
+        if live:
+            emit_event({"type": "phase", "message": "Running multi-turn sequences..."})
         multi_turn_runs = run_all_multi_turn_tests(parsed, baseline_response)
         print(f"[+] Total multi-turn sequences: {len(multi_turn_runs)}")
         for result in multi_turn_runs:
@@ -355,6 +388,17 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     print(f"  HTML report:    {run_path / 'report.html'}")
     print(f"  JSON results:   {single_turn_file}")
     print()
+
+    if live:
+        emit_event({"type": "scan_complete", "confirmed": len(confirmed_results), "suspicious": suspicious_count, "clean": clean})
+        print("[+] Live dashboard remains open. Press Ctrl+C to exit.")
+        try:
+            while True:
+                import time
+                time.sleep(1)
+        except KeyboardInterrupt:
+            if dashboard_server:
+                stop_dashboard(dashboard_server)
 
     return run_path
 

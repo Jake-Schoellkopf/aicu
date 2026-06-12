@@ -103,7 +103,7 @@ def command_scan(args: argparse.Namespace) -> int:
         print("[!] ERROR: Provide --request, --api-key, or set OPENAI_API_KEY environment variable")
         return 1
 
-    run_path = run_scan(request_path, canary=getattr(args, 'canary', None), llm_judge=getattr(args, 'llm_judge', False), judge_model=getattr(args, 'judge_model', 'gpt-4o-mini'))
+    run_path = run_scan(request_path, canary=getattr(args, 'canary', None), llm_judge=getattr(args, 'llm_judge', False), judge_model=getattr(args, 'judge_model', 'gpt-4o-mini'), live=getattr(args, 'live', False))
 
     # Determine exit code from results
     results_file = run_path / "results.json"
@@ -333,6 +333,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--judge-model",
         default="gpt-4o-mini",
         help="Model to use for LLM judge (default: gpt-4o-mini)",
+    )
+    scan_parser.add_argument(
+        "--live",
+        action="store_true",
+        default=False,
+        help="Open a real-time web dashboard at http://localhost:4171",
     )
     scan_parser.set_defaults(func=command_scan)
 
