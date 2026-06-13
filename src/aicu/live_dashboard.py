@@ -213,12 +213,22 @@ class DashboardHandler(SimpleHTTPRequestHandler):
         pass  # Suppress server logs
 
 
-def start_dashboard(port: int = 4171) -> HTTPServer:
-    """Start the dashboard HTTP server in a background thread."""
+def start_dashboard(port: int = 4171, open_browser: bool = True) -> HTTPServer:
+    """Start the dashboard HTTP server in a background thread.
+
+    ``open_browser`` is best-effort: in headless environments (no display)
+    launching a browser is skipped rather than allowed to crash the run.
+    """
     server = HTTPServer(("127.0.0.1", port), DashboardHandler)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
-    webbrowser.open(f"http://localhost:{port}")
+    if open_browser:
+        try:
+            webbrowser.open(f"http://localhost:{port}")
+        except Exception:
+            # No browser / no display (e.g. CI, container). Dashboard still
+            # serves at the URL; the user can open it manually.
+            pass
     return server
 
 

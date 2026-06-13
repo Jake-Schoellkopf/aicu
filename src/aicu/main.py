@@ -236,9 +236,54 @@ def command_agent(args: argparse.Namespace) -> None:
     print(json.dumps(serialized, indent=2))
 
 
-def command_multimodal(args: argparse.Namespace) -> None:
-    """Generate and optionally deliver multimodal adversarial payloads."""
+def command_multimodal(args: argparse.Namespace) -> int:
+    """Generate and optionally deliver multimodal adversarial payloads.
+
+    Two modes:
+      - Generation only (default): write payload artifacts to disk.
+      - Live attack (--api-key): deliver the vision payloads to a vision-capable
+        OpenAI-compatible model and evaluate responses, optionally streaming to
+        the live web dashboard with --live.
+    """
     categories = [args.category] if args.category else None
+
+    api_key = getattr(args, "api_key", None) or os.environ.get("OPENAI_API_KEY") or os.environ.get("ANTHROPIC_API_KEY")
+
+    if api_key:
+        from .multimodal_delivery import run_multimodal_attack
+
+        base_url = args.base_url.rstrip("/")
+        provider = args.provider
+        model = args.model
+        # Auto-detect Anthropic from key prefix.
+        if api_key.startswith("sk-ant-"):
+            provider = "anthropic"
+            if base_url == "https://api.openai.com":
+                base_url = "https://api.anthropic.com"
+
+        summary = run_multimodal_attack(
+            api_key=api_key,
+            model=model,
+            base_url=base_url,
+            provider=provider,
+            categories=categories,
+            output_dir=args.output_dir,
+            canary=getattr(args, "canary", None),
+            live=getattr(args, "live", False),
+            limit=getattr(args, "limit", None),
+        )
+
+        outcomes = summary["outcomes"]
+        if outcomes["confirmed"]:
+            print(f"\n[!] EXIT CODE {EXIT_CONFIRMED}: Confirmed multimodal findings.")
+            return EXIT_CONFIRMED
+        if outcomes["suspicious"]:
+            print(f"\n[*] EXIT CODE {EXIT_SUSPICIOUS}: Suspicious multimodal findings only.")
+            return EXIT_SUSPICIOUS
+        print(f"\n[+] EXIT CODE {EXIT_CLEAN}: No multimodal findings.")
+        return EXIT_CLEAN
+
+    # Generation-only mode.
     summary = run_multimodal_scan(
         request_file=args.request if hasattr(args, "request") and args.request else None,
         categories=categories,
@@ -252,6 +297,7 @@ def command_multimodal(args: argparse.Namespace) -> None:
     for cat, info in summary["categories"].items():
         print(f"      {cat}: {info['count']} payloads")
     print(json.dumps(summary, indent=2))
+    return EXIT_CLEAN
 
 
 def _add_common_args(parser: argparse.ArgumentParser) -> None:
@@ -447,6 +493,44 @@ def build_parser() -> argparse.ArgumentParser:
         "--output-dir",
         default=None,
         help="Output directory for generated payloads (default: runs/multimodal_<timestamp>)",
+    )
+    multimodal_parser.add_argument(
+        "--api-key",
+        default=None,
+        help="Deliver vision payloads to a live OpenAI/Anthropic-compatible model (else generate-only). Falls back to OPENAI_API_KEY/ANTHROPIC_API_KEY env vars.",
+    )
+    multimodal_parser.add_argument(
+        "--model",
+        default="gpt-4o-mini",
+        help="Vision-capable model to attack (default: gpt-4o-mini)",
+    )
+    multimodal_parser.add_argument(
+        "--base-url",
+        default="https://api.openai.com",
+        help="API base URL (default: https://api.openai.com)",
+    )
+    multimodal_parser.add_argument(
+        "--provider",
+        choices=["openai", "anthropic"],
+        default="openai",
+        help="API provider (default: openai)",
+    )
+    multimodal_parser.add_argument(
+        "--canary",
+        default=None,
+        help="Canary string to check for in responses (proves extraction)",
+    )
+    multimodal_parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="Max number of vision payloads to deliver (default: all). Useful to cap API cost.",
+    )
+    multimodal_parser.add_argument(
+        "--live",
+        action="store_true",
+        default=False,
+        help="Open a real-time web dashboard at http://localhost:4171 during delivery",
     )
     multimodal_parser.set_defaults(func=command_multimodal)
 

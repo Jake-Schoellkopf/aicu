@@ -88,33 +88,33 @@ aicu scan --request captured_request.txt
 
 ## Multimodal Attack Engine
 
-AICU generates 151 advanced adversarial payloads across vision, audio, and document modalities — no model access required.
+AICU generates 199 advanced adversarial payloads across vision, audio, and document modalities — no model access required. Every payload is written to disk as a real, valid artifact (PNG/JPG, WAV, PDF/DOCX, TXT/MD) alongside a `manifest.json` inventory.
 
-### Vision (48 payloads)
+### Vision (60 payloads)
 
-| Technique | Description |
-|-----------|-------------|
-| **LSB Steganography** | Instructions encoded in least-significant bits of pixel data |
-| **Opacity Overlay** | Text composited at 2-5% alpha (invisible to humans, detected by VLMs) |
-| **EXIF/XMP Injection** | Payloads in image metadata fields parsed by LLM pipelines |
-| **Split Payload** | Instructions distributed across multiple images that reassemble in context |
+| Technique | Count | Description |
+|-----------|-------|-------------|
+| **LSB Steganography** | 11 | Instructions encoded in least-significant bits of pixel data |
+| **Opacity Overlay** | 11 | Text composited at 2-5% alpha (invisible to humans, detected by VLMs) |
+| **EXIF/XMP Injection** | 19 | Payloads in image metadata fields parsed by LLM pipelines |
+| **Split Payload** | 19 | Instructions distributed across multiple images that reassemble in context |
 
-### Audio (36 payloads)
+### Audio (48 payloads)
 
-| Technique | Description |
-|-----------|-------------|
-| **Whisper Underlay** | Commands whispered at -30 to -40dB beneath foreground speech |
-| **Universal Mute** | Adversarial segments that suppress or hijack ASR transcription |
-| **Frequency Hiding** | FSK/spread-spectrum encoding in near-ultrasonic 15-20kHz band |
+| Technique | Count | Description |
+|-----------|-------|-------------|
+| **Whisper Underlay** | 27 | Commands whispered at -30 to -40dB beneath foreground speech |
+| **Universal Mute** | 7 | Adversarial segments that suppress or hijack ASR transcription |
+| **Frequency Hiding** | 14 | FSK/spread-spectrum encoding in near-ultrasonic 15-20kHz band |
 
-### Documents (67 payloads)
+### Documents (91 payloads)
 
-| Technique | Description |
-|-----------|-------------|
-| **Font Remap** | PDF ToUnicode CMap manipulation — displays benign text, extracts as injection |
-| **White on White** | Invisible PDF layers: white text, 0.1pt font, off-page, zero-opacity |
-| **DOCX Hidden XML** | Vanish property, deleted revisions, hidden bookmarks, SDT controls, comments |
-| **Zero-Width Unicode** | Binary/4-bit encoding using invisible unicode characters in text |
+| Technique | Count | Description |
+|-----------|-------|-------------|
+| **Font Remap** | 14 | PDF ToUnicode CMap manipulation — displays benign text, extracts as injection |
+| **White on White** | 35 | Invisible PDF layers: white text, 0.1pt font, off-page, zero-opacity |
+| **DOCX Hidden XML** | 17 | Vanish property, deleted revisions, hidden bookmarks, SDT controls, comments |
+| **Zero-Width Unicode** | 25 | Binary/4-bit encoding using invisible unicode characters in text |
 
 ```bash
 # Generate all multimodal payloads
@@ -132,6 +132,38 @@ aicu multimodal --category documents
 # Custom output directory
 aicu multimodal --output-dir ./payloads_out
 ```
+
+### Live Delivery (attack a real vision model)
+
+By default `aicu multimodal` only *generates* payloads. Pass `--api-key` to also
+**deliver** the vision payloads to a vision-capable, OpenAI-compatible model
+(e.g. `gpt-4o-mini`), evaluate whether the hidden image instruction influenced
+the response, and (optionally) stream results to the live web dashboard.
+
+```bash
+# Deliver vision payloads to gpt-4o-mini and evaluate responses
+aicu multimodal --api-key sk-... --model gpt-4o-mini
+
+# Plant a canary in the system prompt; any payload that extracts it = CONFIRMED
+aicu multimodal --api-key sk-... --canary "AICU_SECRET_123"
+
+# Cap API cost by limiting how many payloads are delivered
+aicu multimodal --api-key sk-... --limit 10
+
+# Stream live results to http://localhost:4171
+aicu multimodal --api-key sk-... --canary "AICU_SECRET_123" --live
+```
+
+Exit codes match the rest of the suite: `0` = no findings, `1` = confirmed,
+`2` = suspicious only. Results are written to `attack_results.json` in the run
+directory.
+
+> **Scope note:** Only the **vision** category is delivered over the
+> chat-completions API, because that is the only modality a standard
+> OpenAI-compatible chat endpoint ingests inline (as a base64 `image_url` data
+> URI). Audio and document payloads are still generated and saved to disk, but
+> are reported as "generated but not delivered" — there is no inline
+> chat-completions channel for them.
 
 ## How It Works
 
@@ -214,13 +246,13 @@ aicu scan --api-key sk-... --llm-judge --model gpt-4o-mini
 # Full scan with real-time web dashboard
 aicu scan --api-key sk-... --llm-judge --live
 
-# Individual modes
+# Individual modes (these require a captured --request file; scan & multimodal also accept --api-key)
 aicu single-turn --request req.txt --best-of-n 10
 aicu multi-turn --request req.txt
 aicu safety --request req.txt --category safety_bypass
 aicu agent --request req.txt --category schema_extraction
 aicu indirect --request upload_req.txt
-aicu multimodal --category vision
+aicu multimodal --category vision                     # generate offline (add --api-key to deliver)
 
 # Agent/RAG-specific testing
 aicu agent --request req.txt                          # all categories

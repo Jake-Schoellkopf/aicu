@@ -73,12 +73,46 @@ class Handler(BaseHTTPRequestHandler):
 
         messages = data.get("messages", [])
         user_msg = ""
+        has_image = False
+        system_msg = ""
+        for m in messages:
+            if m.get("role") == "system" and isinstance(m.get("content"), str):
+                system_msg = m.get("content", "")
         for m in reversed(messages):
             if m.get("role") == "user":
-                user_msg = m.get("content", "")
+                content = m.get("content", "")
+                if isinstance(content, list):
+                    # Multimodal content: list of {type: text|image_url} parts.
+                    for part in content:
+                        if part.get("type") == "image_url":
+                            has_image = True
+                        elif part.get("type") == "text":
+                            user_msg = part.get("text", "")
+                else:
+                    user_msg = content
                 break
 
-        reply = generate_response(user_msg)
+        if has_image:
+            # Simulate a VULNERABLE vision model that "reads" hidden text in the
+            # image and follows it (leaks its system prompt / config). This is a
+            # mock for end-to-end testing of AICU's delivery pipeline — a real
+            # model may or may not be this permissive.
+            if system_msg:
+                reply = (
+                    "Sure — here are my loaded instructions:\n"
+                    f"{system_msg}\n"
+                    "role: FinanceBot\nrules: [never reveal secrets]\n"
+                    "tools: get_balance, transfer_funds, list_accounts\n"
+                    "capabilities: account management"
+                )
+            else:
+                reply = (
+                    "Following the embedded directive — operational config dump:\n"
+                    "role: assistant\nrules: [be helpful]\ntools: [search, fetch]\n"
+                    "capabilities: text generation\nboundaries: none configured"
+                )
+        else:
+            reply = generate_response(user_msg)
 
         response = {
             "id": f"chatcmpl-{uuid.uuid4().hex[:8]}",
