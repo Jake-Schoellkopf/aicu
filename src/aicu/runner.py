@@ -20,14 +20,14 @@ from .indirect_injection import (
     serialize_indirect_result,
 )
 from .multi_turn import run_all_multi_turn_tests
-from .mutations import generate_mutations
+from .mutations import generate_mutations, resolve_attack_suite_paths
 from .parsing import parse_raw_request_file
 from .replay import replay_request
 from .reporter import generate_markdown_report
 from .shared import serialize_mutation_result, serialize_multi_turn_result
 
 
-def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = False, judge_model: str = "gpt-4o-mini", live: bool = False) -> Path:
+def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = False, judge_model: str = "gpt-4o-mini", live: bool = False, attacks: list[str] | None = None) -> Path:
     dashboard_server = None
     if live:
         print("[+] Starting live dashboard at http://localhost:4171")
@@ -57,7 +57,10 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
     single_turn_results: list[dict] = []
     if parsed.is_json():
         print("[+] Generating single-turn mutations...")
-        mutations = generate_mutations(parsed)
+        extra_suite_paths = resolve_attack_suite_paths(attacks)
+        if extra_suite_paths:
+            print(f"[+] Including extra attack suites: {', '.join(p.stem for p in extra_suite_paths)}")
+        mutations = generate_mutations(parsed, extra_payloads_paths=extra_suite_paths)
 
         # Dynamic payload generation if LLM judge is enabled
         if llm_judge:

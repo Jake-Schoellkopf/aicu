@@ -173,19 +173,21 @@ directory.
 
 ### Attack Pipeline
 
-AICU fires multiple attack stages, each using different optimization strategies:
+AICU fires multiple attack stages. A default `scan` runs the **single-turn** and **multi-turn** suites; additional suites are **opt-in via `--attacks`**, and the iterative/LLM-driven stages turn on with `--llm-judge`.
 
-| Stage | Technique | Based On |
-|-------|-----------|----------|
-| Static payloads (86) | Task framing, logic exploits, role assumption, linguistic transforms | Guardrail-evasive handcrafted prompts |
-| Trigger-optimized (25) | Format coercion, completion steering, context boundary, gradient triggers | Black Hat USA adversarial optimization (X_before ⊕ X_trigger₁ ⊕ X_payload ⊕ X_trigger₂ ⊕ X_after) |
-| Encoding attacks (24) | Base64, Unicode, ROT13, homoglyphs, multilingual, escape sequences | Token-level confusion to bypass classifier attention |
-| Intruder payloads (135) | DevOps framing, IaC templates, format coercion, context probing | Burp Intruder-style high-volume fuzzing |
-| Dynamic generation (15) | LLM generates novel payloads tailored to target's baseline | Context-aware attack synthesis |
-| TAP | Tree of Attacks with Pruning — 4 depths, 4 branches | Mehrotra et al. (2023) |
-| PAIR | Prompt Automatic Iterative Refinement — 20 iterations | Chao et al. (2310.08419) |
-| Crescendo | Progressive 12-turn trust escalation | Microsoft Research (2404.01833) |
-| Multi-turn (20) | Trust ratcheting, version control framing, cognitive overload | Adaptive multi-turn sequences |
+| Stage | Technique | When it runs |
+|-------|-----------|--------------|
+| Single-turn | Task framing, logic exploits, role assumption, linguistic transforms, side-channel, boundary probing, best-of-N | Default |
+| Multi-turn | Trust ratcheting, version-control framing, cognitive overload | Default |
+| Indirect file injection | Malicious payloads embedded in uploaded files | Default (multipart requests only) |
+| Encoding attacks (18) | Base64, Unicode/RTL, escape-sequence triggers | `--attacks encoding` |
+| Jailbreaks (21) | Role-play, persona splits, instruction-override framing | `--attacks jailbreaks` |
+| Advanced evasion (30) | Trigger sandwiches, completion steering, context-boundary | `--attacks advanced_evasion` |
+| Toxicity (21) / Hallucination (21) / DoS (17) | Harmful-content, false-fact, and resource-exhaustion probes | `--attacks toxicity` / `hallucination` / `dos` |
+| Dynamic generation | LLM crafts novel payloads from the target's baseline | `--llm-judge` |
+| TAP / PAIR / Crescendo | Iterative adversarial optimization (Mehrotra 2023; Chao 2310.08419; Microsoft 2404.01833) | `--llm-judge` |
+
+Use `--attacks all` to layer in every optional suite at once (e.g. `aicu scan --request req.txt --attacks all`).
 
 ### Trigger-Sandwich Optimization
 
@@ -245,6 +247,11 @@ aicu scan --api-key sk-... --llm-judge --model gpt-4o-mini
 
 # Full scan with real-time web dashboard
 aicu scan --api-key sk-... --llm-judge --live
+
+# Add optional attack suites (opt-in, layered onto the default single-turn set)
+aicu scan --request req.txt --attacks encoding
+aicu scan --request req.txt --attacks encoding,jailbreaks
+aicu scan --api-key sk-... --attacks all          # encoding + jailbreaks + advanced_evasion + toxicity + hallucination + dos
 
 # Individual modes (these require a captured --request file; scan & multimodal also accept --api-key)
 aicu single-turn --request req.txt --best-of-n 10

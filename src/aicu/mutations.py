@@ -26,6 +26,48 @@ from aicu import PAYLOADS_DIR
 DEFAULT_SINGLE_TURN_PAYLOADS_PATH = PAYLOADS_DIR / "single_turn.yaml"
 DEFAULT_BEST_OF_N = 5
 
+# Optional attack suites that can be layered onto the default single-turn set.
+# Each file uses the same `payload_sets` schema as single_turn.yaml.
+ATTACK_SUITE_FILES = {
+    "encoding": "encoding_attacks.yaml",
+    "jailbreaks": "jailbreaks.yaml",
+    "advanced_evasion": "advanced_evasion.yaml",
+    "toxicity": "toxicity.yaml",
+    "hallucination": "hallucination.yaml",
+    "dos": "dos_probes.yaml",
+}
+
+
+def resolve_attack_suite_paths(attacks: list[str] | None) -> list[Path]:
+    """Map attack-suite names (e.g. ['encoding'] or ['all']) to payload file paths.
+
+    Raises ValueError on an unknown suite name so the CLI can surface it clearly.
+    """
+    if not attacks:
+        return []
+
+    selected: list[str] = []
+    for name in attacks:
+        key = name.strip().lower()
+        if not key:
+            continue
+        if key == "all":
+            selected.extend(ATTACK_SUITE_FILES.keys())
+        elif key in ATTACK_SUITE_FILES:
+            selected.append(key)
+        else:
+            available = ", ".join(sorted(ATTACK_SUITE_FILES)) + ", all"
+            raise ValueError(f"Unknown attack suite {name!r}. Available: {available}")
+
+    paths: list[Path] = []
+    seen: set[str] = set()
+    for key in selected:
+        if key in seen:
+            continue
+        seen.add(key)
+        paths.append(PAYLOADS_DIR / ATTACK_SUITE_FILES[key])
+    return paths
+
 
 @dataclass(slots=True)
 class MutationResult:
@@ -155,9 +197,14 @@ def generate_mutations(
     request: ParsedRequest,
     payloads_path: str | Path = DEFAULT_SINGLE_TURN_PAYLOADS_PATH,
     best_of_n: int = DEFAULT_BEST_OF_N,
+    extra_payloads_paths: list[str | Path] | None = None,
 ) -> list[MutationResult]:
     """
     Fully automated mutation generator using YAML payloads.
+
+    ``extra_payloads_paths`` lets callers layer additional attack suites
+    (e.g. encoding_attacks.yaml) on top of the default single-turn set. Each
+    extra file uses the same ``payload_sets`` schema.
     """
     if not request.is_json():
         raise ValueError("Only JSON requests supported in V1")
@@ -169,6 +216,8 @@ def generate_mutations(
         raise ValueError("No mutation points detected in request")
 
     payload_defs = load_single_turn_payloads(payloads_path)
+    for extra_path in (extra_payloads_paths or []):
+        payload_defs.extend(load_single_turn_payloads(extra_path))
     payload_defs = build_best_of_n_payloads(payload_defs, best_of_n)
 
     results: list[MutationResult] = []

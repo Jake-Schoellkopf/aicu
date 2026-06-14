@@ -103,7 +103,11 @@ def command_scan(args: argparse.Namespace) -> int:
         print("[!] ERROR: Provide --request, --api-key, or set OPENAI_API_KEY environment variable")
         return 1
 
-    run_path = run_scan(request_path, canary=getattr(args, 'canary', None), llm_judge=getattr(args, 'llm_judge', False), judge_model=getattr(args, 'judge_model', 'gpt-4o-mini'), live=getattr(args, 'live', False))
+    attacks_list = None
+    if getattr(args, "attacks", None):
+        attacks_list = [a.strip() for a in args.attacks.split(",") if a.strip()]
+
+    run_path = run_scan(request_path, canary=getattr(args, 'canary', None), llm_judge=getattr(args, 'llm_judge', False), judge_model=getattr(args, 'judge_model', 'gpt-4o-mini'), live=getattr(args, 'live', False), attacks=attacks_list)
 
     # Determine exit code from results
     results_file = run_path / "results.json"
@@ -385,6 +389,13 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         default=False,
         help="Open a real-time web dashboard at http://localhost:4171",
+    )
+    scan_parser.add_argument(
+        "--attacks",
+        default=None,
+        help="Comma-separated extra attack suites to layer onto the default single-turn set: "
+             "encoding, jailbreaks, advanced_evasion, toxicity, hallucination, dos, or 'all'. "
+             "Example: --attacks encoding  (or)  --attacks encoding,jailbreaks",
     )
     scan_parser.set_defaults(func=command_scan)
 
