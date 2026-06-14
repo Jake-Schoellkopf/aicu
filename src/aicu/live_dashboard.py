@@ -75,6 +75,8 @@ body { font-family: 'JetBrains Mono', 'Fira Code', monospace; background: #0d111
 .event .tag.clean { background: #21262d; color: #8b949e; }
 .event .name { color: #c9d1d9; }
 .event .payload-preview { color: #8b949e; font-size: 11px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.event .full-payload { color: #79c0ff; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-break: break-word; background: #0d1117; padding: 8px; border-radius: 4px; max-height: 200px; overflow-y: auto; }
+.event .full-response { color: #a5d6ff; font-size: 11px; margin-top: 6px; white-space: pre-wrap; word-break: break-word; background: #0d1117; padding: 8px; border-radius: 4px; max-height: 200px; overflow-y: auto; border-left: 2px solid #3fb950; }
 .event .canary { color: #f85149; font-weight: 700; font-size: 11px; margin-top: 4px; }
 .detail h3 { color: #58a6ff; margin-bottom: 12px; font-size: 14px; }
 .detail .field { margin-bottom: 12px; }
@@ -155,7 +157,8 @@ function addResultToFeed(evt) {
     const el = document.createElement('div');
     el.className = 'event ' + evt.outcome;
     el.innerHTML = `<span class="tag ${evt.outcome}">${evt.outcome.toUpperCase()}</span><span class="name">[${evt.index}] ${evt.variant_id} ${evt.name}</span>`;
-    if (evt.payload_preview) el.innerHTML += `<div class="payload-preview">${escHtml(evt.payload_preview)}</div>`;
+    if (evt.payload) el.innerHTML += `<div class="full-payload"><strong>Payload:</strong>\\n${escHtml(evt.payload)}</div>`;
+    if (evt.response) el.innerHTML += `<div class="full-response"><strong>Response:</strong>\\n${escHtml(evt.response)}</div>`;
     if (evt.canary_leaked) el.innerHTML += `<div class="canary">\\u26a0 CANARY LEAKED</div>`;
     el.onclick = () => showDetail(evt);
     feed.appendChild(el);
