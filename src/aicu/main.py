@@ -240,6 +240,18 @@ def command_agent(args: argparse.Namespace) -> None:
     print(json.dumps(serialized, indent=2))
 
 
+def command_full_scan(args: argparse.Namespace) -> int:
+    """Run the full multi-suite scan against a multipart/form-data target."""
+    from .full_scan import run_full_scan
+
+    return run_full_scan(
+        request_file=args.request,
+        output_dir=getattr(args, "output_dir", None),
+        refusal_threshold=getattr(args, "threshold", 8),
+        delay=getattr(args, "delay", 2.0),
+    )
+
+
 def command_multimodal(args: argparse.Namespace) -> int:
     """Generate and optionally deliver multimodal adversarial payloads.
 
@@ -398,6 +410,35 @@ def build_parser() -> argparse.ArgumentParser:
              "Example: --attacks encoding  (or)  --attacks encoding,jailbreaks",
     )
     scan_parser.set_defaults(func=command_scan)
+
+    # full-scan
+    full_scan_parser = subparsers.add_parser(
+        "full-scan",
+        help="Run ALL payload suites (single-turn + encoding + jailbreaks + advanced_evasion + toxicity + hallucination + dos) against a multipart/form-data target",
+    )
+    full_scan_parser.add_argument(
+        "--request",
+        required=True,
+        help="Path to a raw multipart/form-data HTTP request file (with a 'content' field)",
+    )
+    full_scan_parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Directory for results (default: runs/run_<timestamp>)",
+    )
+    full_scan_parser.add_argument(
+        "--threshold",
+        type=int,
+        default=8,
+        help="Pause for a fresh session after this many consecutive refusals (default: 8)",
+    )
+    full_scan_parser.add_argument(
+        "--delay",
+        type=float,
+        default=2.0,
+        help="Seconds between requests for rate limiting (default: 2.0)",
+    )
+    full_scan_parser.set_defaults(func=command_full_scan)
 
     # single-turn
     single_turn_parser = subparsers.add_parser(

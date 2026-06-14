@@ -253,6 +253,10 @@ aicu scan --request req.txt --attacks encoding
 aicu scan --request req.txt --attacks encoding,jailbreaks
 aicu scan --api-key sk-... --attacks all          # encoding + jailbreaks + advanced_evasion + toxicity + hallucination + dos
 
+# Full scan: run every suite (173 payloads) against a multipart/form-data target
+aicu full-scan --request upload_req.txt
+aicu full-scan --request upload_req.txt --threshold 8 --delay 1.5
+
 # Individual modes (these require a captured --request file; scan & multimodal also accept --api-key)
 aicu single-turn --request req.txt --best-of-n 10
 aicu multi-turn --request req.txt

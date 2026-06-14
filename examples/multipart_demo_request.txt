@@ -1,0 +1,9 @@
+POST /v1/chat/completions HTTP/1.1
+Host: 127.0.0.1:8899
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundaryAICU01
+
+------WebKitFormBoundaryAICU01
+Content-Disposition: form-data; name="content"
+
+hello
+------WebKitFormBoundaryAICU01--

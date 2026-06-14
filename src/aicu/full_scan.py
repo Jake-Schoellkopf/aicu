@@ -26,6 +26,7 @@ from .evaluator import evaluate_response, extract_model_output, EvaluationResult
 from .structured_evaluator import evaluate_structured_output, serialize_structured_evaluation
 from .models import ReplayResponse
 from .payload_loader import load_yaml
+from . import PAYLOADS_DIR
 
 # --- Configuration ---
 CONSECUTIVE_REFUSAL_THRESHOLD = 8  # Pause after this many refusals in a row
@@ -80,15 +81,14 @@ def load_all_payloads() -> list[dict]:
     """Load all payload families."""
     all_payloads = []
 
-    _pkg_dir = Path(__file__).parent
     payload_files = [
-        (_pkg_dir / "payloads/single_turn.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/advanced_evasion.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/jailbreaks.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/encoding_attacks.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/toxicity.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/hallucination.yaml", "payload_sets"),
-        (_pkg_dir / "payloads/dos_probes.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "single_turn.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "advanced_evasion.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "jailbreaks.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "encoding_attacks.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "toxicity.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "hallucination.yaml", "payload_sets"),
+        (PAYLOADS_DIR / "dos_probes.yaml", "payload_sets"),
     ]
 
     for filepath, key in payload_files:
@@ -127,8 +127,20 @@ def wait_for_new_session():
         print("[+] Auto-resuming after 30s pause.\n")
 
 
-def run_full_scan():
-    """Run all payloads against the target."""
+def run_full_scan(
+    request_file: str = REQUEST_FILE,
+    output_dir: str | None = None,
+    refusal_threshold: int = CONSECUTIVE_REFUSAL_THRESHOLD,
+    delay: float = PAUSE_BETWEEN_REQUESTS,
+) -> int:
+    """Run all payloads against the target.
+
+    Args:
+        request_file: Path to a raw multipart/form-data HTTP request file.
+        output_dir: Directory to write results into (default: runs/run_<timestamp>).
+        refusal_threshold: Pause for a fresh session after this many consecutive refusals.
+        delay: Seconds to sleep between requests (rate limiting).
+    """
     print("=" * 80)
     print("  AICU FULL SCAN")
     print(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -140,7 +152,7 @@ def run_full_scan():
 
     # Setup output
     run_id = datetime.now().strftime("run_%Y-%m-%d_%H-%M-%S")
-    run_path = Path("runs") / run_id
+    run_path = Path(output_dir) if output_dir else Path("runs") / run_id
     run_path.mkdir(parents=True, exist_ok=True)
 
     results = []
@@ -151,16 +163,16 @@ def run_full_scan():
     session_rotations = 0
 
     # Load initial request
-    parsed = parse_raw_request_file(REQUEST_FILE)
+    parsed = parse_raw_request_file(request_file)
     boundary = extract_boundary(parsed.content_type)
     print(f"[+] Target: {parsed.full_url()}")
     print(f"[+] Starting scan...\n")
 
     for i, payload in enumerate(all_payloads, 1):
         # Check if we need a new session
-        if consecutive_refusals >= CONSECUTIVE_REFUSAL_THRESHOLD:
+        if consecutive_refusals >= refusal_threshold:
             wait_for_new_session()
-            parsed = parse_raw_request_file(REQUEST_FILE)
+            parsed = parse_raw_request_file(request_file)
             boundary = extract_boundary(parsed.content_type)
             consecutive_refusals = 0
             session_rotations += 1
@@ -220,7 +232,7 @@ def run_full_scan():
         print(f"  [{i}/{len(all_payloads)}] {icon} {payload['source']}/{payload['family']}/{payload['name'][:30]} -> {outcome}")
 
         # Rate limiting
-        time.sleep(PAUSE_BETWEEN_REQUESTS)
+        time.sleep(delay)
 
     # Save results
     results_file = run_path / "full_scan_results.json"
