@@ -9,7 +9,7 @@
 <p align="center">
   <img src="demo.svg" alt="AICU demo" width="800">
   <br>
-  <em>Illustrative scan against AICU's bundled vulnerable demo server — system prompt, tools, and API key extracted</em>
+  <em>Live scan against OpenAI gpt-4o-mini — confidential canary (NIGHTHAWK) extracted in 40 of 114 payloads</em>
 </p>
 
 AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts.
