@@ -9,7 +9,7 @@
 <p align="center">
   <img src="demo.svg" alt="AICU demo" width="800">
   <br>
-  <em>Live scan via Docker against OpenAI GPT-4o-mini — canary secret extracted in 10 payloads</em>
+  <em>Illustrative scan against AICU's bundled vulnerable demo server — system prompt, tools, and API key extracted</em>
 </p>
 
 AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts.
