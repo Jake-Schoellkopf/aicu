@@ -236,6 +236,14 @@ Results are evaluated by a multi-layer system:
 - **LLM Judge** (optional): bug-bounty severity bar — only confirms findings with real exploit value
 - **Canary detection**: ground-truth proof via planted secrets
 
+**Confirmed vs. suspicious:** treat the two tiers differently. **Confirmed**
+findings (canary extraction, structured high-severity leaks) are the reliable,
+action-first signal. The **suspicious** tier is intentionally sensitive — it
+fires on behavioral/statistical anomalies even without a pattern match, so it is
+mainly a review queue and will contain false positives (benign responses that
+merely differ from baseline). Skim it for anything genuinely interesting, but
+don't treat suspicious as a leak on its own — `--llm-judge` exists to triage it.
+
 ## Usage
 
 ```bash
