@@ -7,17 +7,22 @@ from pathlib import Path
 from datetime import datetime
 import httpx
 
-PROXY = "http://127.0.0.1:8080"
-ORG_ID = "7891d7ba-77c3-431a-a6be-b5dc8fc0f7f1"
+# Credentials are read from environment variables — NEVER hardcode them.
+# Capture these from your own authenticated browser session and export them:
+#   CLAUDE_SESSION_KEY, CLAUDE_CF_CLEARANCE, CLAUDE_CF_BM, CLAUDE_CFUVID,
+#   CLAUDE_DEVICE_ID, CLAUDE_ORG_ID, CLAUDE_CONV_ID, AICU_COLLABORATOR
+PROXY = os.environ.get("AICU_PROXY", "http://127.0.0.1:8080")
+ORG_ID = os.environ.get("CLAUDE_ORG_ID", "")
 UPLOAD_URL = "https://claude.ai/api/organizations/%s/convert_document" % ORG_ID
-COLLABORATOR = "9lvs0lh3owmecwcu91d2gpzdv41vplda.oastify.com"
+COLLABORATOR = os.environ.get("AICU_COLLABORATOR", "your-collaborator.example.com")
+DEVICE_ID = os.environ.get("CLAUDE_DEVICE_ID", "")
 
 COOKIES = {
-    "anthropic-device-id": "5c40ec65-15d2-4107-b41d-5558d2546962",
-    "sessionKey": "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",
-    "cf_clearance": "TpIiMzijSoGFhzfjUOVZ4EQUobOp_KOEiYc4fHvyzuA-1779993011-1.2.1.1-DBc6x_RNvCOgL3eKaFqjcH8rPE7_9mxTGUSwDLZ_ZyJn27zRa0ZNjmM4d5WYv3a2152EEHkTSBc2MxLI2cG7fZQvzbHkXZgOl1167XL3g2Jj7YDOiY9Kmz1o9iczOJzrCbNKAnr7u6WyKByE0c1Hyd0Wihw6Am4VQUqFHDvVA_fUVI_tALBbsR8h3zBTIVTD3wV9R9EBNhAV9V3.5Ro0JJdvHM_jG4jAuMebk4NnUoV0uGoOy1cGhArDkBBF0Z258iBv2DOnU.ipEZiVONbj76TWJJ2jSgs7SG6yYCdZQVT6f2zLenL.QXu6QTZzhzfcXZSC3Y2mNMVTjt715CHLlqVwjzdZpQFZAy_UsqDcQvgrjRGpK9C2_PhXj_4TQBFSOx3pPmutUU8j018aaUrTrL8s2XbgFd8kq2PpQFoeU2E",
-    "__cf_bm": "kYPW.WymaR2jIkQ7pJY9q6sPCpzhCyXxM9pdp_boe5w-1779993011.973147-1.0.1.1-kP3WE4Bebsp7Lhp2igYuW0cmDIqI3upyX.lGR6Mgi_m8Pq7W9c3.6JXbTouzKe7EzifJsBeCYltVsthNFkHfAULCATX2.Spow_sApaoQfzWRnEU43Ue9k9r_BxKR.yUw",
-    "_cfuvid": "kgYjs1mu_NsvWlQJT2knyinhCOBI7HSVD3tdP0pFavg-1779992996.3808541-1.0.1.1-QhRkEvSJJFM_.ftrFYK.zRxHpxNR8_5Kwu7KV1YeJck",
+    "anthropic-device-id": DEVICE_ID,
+    "sessionKey": os.environ.get("CLAUDE_SESSION_KEY", ""),
+    "cf_clearance": os.environ.get("CLAUDE_CF_CLEARANCE", ""),
+    "__cf_bm": os.environ.get("CLAUDE_CF_BM", ""),
+    "_cfuvid": os.environ.get("CLAUDE_CFUVID", ""),
     "lastActiveOrg": ORG_ID,
 }
 
@@ -29,10 +34,10 @@ HEADERS = {
     "Sec-Fetch-Mode": "cors",
     "Sec-Fetch-Dest": "empty",
     "Anthropic-Client-Platform": "web_claude_ai",
-    "Anthropic-Device-Id": "5c40ec65-15d2-4107-b41d-5558d2546962",
+    "Anthropic-Device-Id": DEVICE_ID,
 }
 
-CONV_ID = "0021ac6e-7291-4820-97d5-875d98c7cde2"
+CONV_ID = os.environ.get("CLAUDE_CONV_ID", "")
 COMPLETION_URL = "https://claude.ai/api/organizations/%s/chat_conversations/%s/completion" % (ORG_ID, CONV_ID)
 
 MIME_MAP = {
