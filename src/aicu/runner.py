@@ -138,11 +138,11 @@ def run_scan(request_file: str, canary: str | None = None, llm_judge: bool = Fal
                 from .mutations import get_value_at_path
                 payload_text = get_value_at_path(mutation.mutated_request.json_body, mutation.mutation_point)
                 if isinstance(payload_text, str) and len(payload_text) > 0:
-                    preview = payload_text[:80] + ("..." if len(payload_text) > 80 else "")
+                    preview = payload_text[:200] + ("..." if len(payload_text) > 200 else "")
                     print(f"    Payload:  \"{preview}\"")
             if response.text and not response.error:
                 model_output = extract_model_output(response.text)
-                resp_preview = model_output[:200].replace("\n", " ")
+                resp_preview = model_output[:700].replace("\n", " ")
                 print(f"    Response: \"{resp_preview}\"")
             if evaluation.reason and outcome != "none":
                 print(f"    Reason:   {evaluation.reason[:120]}")
