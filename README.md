@@ -9,7 +9,7 @@
 <p align="center">
   <img src="demo.svg" alt="AICU demo" width="800">
   <br>
-  <em>Live scan against OpenAI gpt-4o-mini (single-turn + adversarial encoding suite) — confidential canary (NIGHTHAWK) extracted; 50 confirmed / 38 suspicious / 70 clean</em>
+  <em>Live scan against a legacy model (single-turn + adversarial encoding suite) — confidential canary (NIGHTHAWK) extracted; 50 confirmed / 38 suspicious / 70 clean</em>
 </p>
 
 AICU replays captured HTTP requests with adversarial payloads and evaluates whether the target discloses system prompts, internal tools, credentials, or responds to safety bypass attempts.
