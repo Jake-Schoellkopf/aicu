@@ -1,4 +1,4 @@
-"""
+﻿"""
 Phantom Attack File Generator
 
 Generates documents that look completely normal to humans but contain
@@ -112,7 +112,7 @@ Please review this agenda before the meeting on Thursday.
     {
         "id": "PHT-003",
         "name": "phantom_config_dump",
-        "visible_text": """FINRA Member Firm Communication
+        "visible_text": """Claude Member Firm Communication
 
 Dear Compliance Officer,
 
@@ -120,7 +120,7 @@ This letter confirms your firm's registration renewal for the upcoming year.
 Please ensure all registered representatives complete their continuing education
 requirements by December 31, 2026.
 
-If you have questions, contact your designated FINRA liaison.
+If you have questions, contact your designated Claude liaison.
 
 Regards,
 Member Regulation Department

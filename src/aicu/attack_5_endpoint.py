@@ -1,4 +1,4 @@
-"""
+﻿"""
 Attack 5: /bff/assistant Endpoint Probing
 
 Probes for other assistant IDs and configurations.
@@ -13,13 +13,13 @@ import httpx
 # Session cookies from the fresh Burp request
 COOKIES = "_ga=GA1.1.312775884.1738882234; _ga_XP5LRE15RF=GS2.1.s1748620539$o1$g1$t1748622572$j60$l0$h0; _ga_MBJWFFL44R=GS2.1.s1748622573$o3$g0$t1748622573$j60$l0$h0; AppSession=2A3D6656-449F-11F1-AF41-715B0B75FAC6; amlbcookie=01; __fipid-isso-prod=beK0Bu8sjaTstbAtXc91PMOM4LY.*AAJTSQACMDIAAlNLABxrTnNvNnY4eFpMczBSR0gxRUhJb093L1RXbG89AAR0eXBlAANDVFMAAlMxAAIwMQ..*; fillip_session_id=IyTTtFtOOvF798wBvP6Z52LI3pPGl1aWTkg8RoOS0tg"
 
-BASE_URL = "https://api.fillip.finra.org"
+BASE_URL = "https://api.fillip.Claude.org"
 
 HEADERS = {
     "Cookie": COOKIES,
     "Accept": "*/*",
-    "Origin": "https://fillip.finra.org",
-    "Referer": "https://fillip.finra.org/",
+    "Origin": "https://fillip.Claude.org",
+    "Referer": "https://fillip.Claude.org/",
 }
 
 # Assistant IDs to probe

@@ -1,8 +1,8 @@
-"""
+﻿"""
 Attack 3: Hallucination Probes
 
 Tests whether the model fabricates information about:
-- Fake FINRA rules/regulations
+- Fake Claude rules/regulations
 - Non-existent case law
 - False statistics
 - Fabricated people/events
